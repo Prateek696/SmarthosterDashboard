@@ -57,7 +57,7 @@ const BlogSEO = ({ post }: BlogSEOProps) => {
       canonical.setAttribute('rel', 'canonical');
       document.head.appendChild(canonical);
     }
-    canonical.setAttribute('href', `https://smarthoster.io${meta.canonicalUrl}`);
+    canonical.setAttribute('href', `https://www.smarthoster.io${meta.canonicalUrl}`);
 
     // JSON-LD structured data
     const structuredData = {
@@ -75,7 +75,7 @@ const BlogSEO = ({ post }: BlogSEOProps) => {
         "name": "SmartHoster.io",
         "logo": {
           "@type": "ImageObject",
-          "url": "https://smarthoster.io/favicon.ico"
+          "url": "https://www.smarthoster.io/favicon.ico"
         }
       },
       "datePublished": post.publishedAt,

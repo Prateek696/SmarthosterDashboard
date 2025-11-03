@@ -48,7 +48,7 @@ export const generateMetaTags = (post: any) => {
     ogTitle: post.title,
     ogDescription: post.metaDescription,
     ogImage: post.ogImage,
-    ogUrl: `https://smarthoster.io/blog/${post.slug}`,
+    ogUrl: `https://www.smarthoster.io/blog/${post.slug}`,
     canonicalUrl: post.canonicalUrl || `/blog/${post.slug}`,
     articleAuthor: post.author.name,
     articlePublishedTime: post.publishedAt,

@@ -72,8 +72,8 @@ const Index = () => {
       "@context": "https://schema.org",
       "@type": "Organization",
       "name": "SmartHoster",
-      "url": "https://smarthoster.io",
-      "logo": "https://smarthoster.io/favicon.ico",
+      "url": "https://www.smarthoster.io",
+      "logo": "https://www.smarthoster.io/favicon.ico",
       "description": "SmartHoster provides professional short-term rental management in Portugal, handling everything from listings to compliance.",
       "sameAs": [
         "https://www.instagram.com/smarthoster.io",

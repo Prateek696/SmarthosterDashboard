@@ -19,7 +19,7 @@ const SEO = ({
   title,
   description,
   canonicalUrl = '',
-  ogImage = 'https://smarthoster.io/og-image.jpg',
+  ogImage = 'https://www.smarthoster.io/og-image.jpg',
   ogType = 'website',
   lastModified = new Date().toISOString(),
   structuredData,
@@ -97,8 +97,8 @@ const SEO = ({
     
     // Build proper OG URL based on language
     const ogUrl = currentLanguage === 'en' 
-      ? `https://smarthoster.io${canonicalUrl}` 
-      : `https://smarthoster.io/${currentLanguage}${canonicalUrl}`;
+      ? `https://www.smarthoster.io${canonicalUrl}` 
+      : `https://www.smarthoster.io/${currentLanguage}${canonicalUrl}`;
     updateMeta('og:url', ogUrl, true);
     updateMeta('og:site_name', 'SmartHoster', true);
     updateMeta('og:locale', currentLanguage === 'pt' ? 'pt_PT' : currentLanguage === 'fr' ? 'fr_FR' : 'en_US', true);
@@ -131,13 +131,13 @@ const SEO = ({
     
     if (isStaticPage) {
       // For static pages, add all language variants
-      updateHreflang('en', `https://smarthoster.io${canonicalUrl}`);
-      updateHreflang('pt-pt', `https://smarthoster.io/pt${canonicalUrl}`);
-      updateHreflang('fr', `https://smarthoster.io/fr${canonicalUrl}`);
-      updateHreflang('x-default', `https://smarthoster.io${canonicalUrl}`);
+      updateHreflang('en', `https://www.smarthoster.io${canonicalUrl}`);
+      updateHreflang('pt-pt', `https://www.smarthoster.io/pt${canonicalUrl}`);
+      updateHreflang('fr', `https://www.smarthoster.io/fr${canonicalUrl}`);
+      updateHreflang('x-default', `https://www.smarthoster.io${canonicalUrl}`);
     } else {
       // For blog posts, only add hreflang if variants exist (handled by BlogPost component)
-      updateHreflang('x-default', `https://smarthoster.io${canonicalUrl}`);
+      updateHreflang('x-default', `https://www.smarthoster.io${canonicalUrl}`);
     }
     
     // Canonical URL - language-specific
@@ -151,9 +151,9 @@ const SEO = ({
     // Build language-specific canonical URL
     const getCanonicalUrl = () => {
       if (currentLanguage === 'en') {
-        return `https://smarthoster.io${canonicalUrl}`;
+        return `https://www.smarthoster.io${canonicalUrl}`;
       } else {
-        return `https://smarthoster.io/${currentLanguage}${canonicalUrl}`;
+        return `https://www.smarthoster.io/${currentLanguage}${canonicalUrl}`;
       }
     };
     
@@ -164,8 +164,8 @@ const SEO = ({
       "@context": "https://schema.org",
       "@type": "Organization",
       "name": "SmartHoster.io",
-      "url": "https://smarthoster.io",
-      "logo": "https://smarthoster.io/favicon.ico",
+      "url": "https://www.smarthoster.io",
+      "logo": "https://www.smarthoster.io/favicon.ico",
       "description": "Complete vacation rental management platform with automated guest communication, dynamic pricing, and integrated booking systems.",
       "contactPoint": {
         "@type": "ContactPoint",

@@ -37,7 +37,7 @@ const BlogPost = ({ post, relatedPosts }: BlogPostProps) => {
           const link = document.createElement('link');
           link.rel = 'alternate';
           link.hreflang = variant.language === 'pt' ? 'pt-pt' : variant.language;
-          link.href = `https://smarthoster.io${variant.url}`;
+          link.href = `https://www.smarthoster.io${variant.url}`;
           document.head.appendChild(link);
         }
       });
@@ -48,7 +48,7 @@ const BlogPost = ({ post, relatedPosts }: BlogPostProps) => {
         const defaultLink = document.createElement('link');
         defaultLink.rel = 'alternate';
         defaultLink.hreflang = 'x-default';
-        defaultLink.href = `https://smarthoster.io${englishVariant.url}`;
+        defaultLink.href = `https://www.smarthoster.io${englishVariant.url}`;
         document.head.appendChild(defaultLink);
       }
     };
@@ -346,17 +346,17 @@ const BlogPost = ({ post, relatedPosts }: BlogPostProps) => {
               "name": "SmartHoster",
               "logo": {
                 "@type": "ImageObject",
-                "url": "https://smarthoster.io/favicon.ico"
+                "url": "https://www.smarthoster.io/favicon.ico"
               }
             },
             "datePublished": post.publishedAt,
             "dateModified": post.updatedAt,
             "articleSection": post.category,
             "keywords": post.tags.join(", "),
-            "url": `https://smarthoster.io${post.canonicalUrl}`,
+            "url": `https://www.smarthoster.io${post.canonicalUrl}`,
             "mainEntityOfPage": {
               "@type": "WebPage",
-              "@id": `https://smarthoster.io${post.canonicalUrl}`
+              "@id": `https://www.smarthoster.io${post.canonicalUrl}`
             }
           })
         }} />
