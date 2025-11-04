@@ -13,7 +13,7 @@ export const strapiApi = {
         'pagination[page]': String(params?.page || 1),
         'pagination[pageSize]': String(params?.pageSize || 50),
         'sort': params?.sort || 'publishedAt:desc',
-        'populate': '*',
+        'populate': '*,seo,seo.metaImage,coverImage',
       });
       
       const response = await fetch(`${STRAPI_URL}/api/blogs?${searchParams}`, {
@@ -40,7 +40,7 @@ export const strapiApi = {
     try {
       const searchParams = new URLSearchParams({
         'filters[slug][$eq]': slug,
-        'populate': '*'
+        'populate': '*,seo,seo.metaImage,coverImage'
       });
       
       const response = await fetch(`${STRAPI_URL}/api/blogs?${searchParams}`, {
@@ -65,7 +65,7 @@ export const strapiApi = {
   // Get blog by ID
   async getBlogById(id: string) {
     try {
-      const response = await fetch(`${STRAPI_URL}/api/blogs/${id}?populate=*`, {
+      const response = await fetch(`${STRAPI_URL}/api/blogs/${id}?populate=*,seo,seo.metaImage,coverImage`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -91,7 +91,7 @@ export const strapiApi = {
         'filters[$or][0][title][$containsi]': query,
         'filters[$or][1][excerpt][$containsi]': query,
         'filters[$or][2][content][$containsi]': query,
-        'populate': '*',
+        'populate': '*,seo,seo.metaImage,coverImage',
         'sort': 'publishedAt:desc'
       });
       

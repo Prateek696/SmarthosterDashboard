@@ -144,16 +144,23 @@ const Blog = () => {
             author: authorData,
             publishedAt: publishedDate,
             updatedAt: attributes.updatedAt || publishedDate,
-            metaDescription: attributes.excerpt || '',
-            ogImage: (() => {
-              const imageUrl = attributes.coverImage?.data?.attributes?.url 
+            // Extract SEO component data if available
+            metaTitle: attributes.seo?.metaTitle || attributes.title,
+            metaDescription: attributes.seo?.metaDescription || attributes.excerpt || '',
+            seoTitle: attributes.seo?.metaTitle || attributes.title,
+            ogImage: attributes.seo?.metaImage?.data?.attributes?.url 
+              ? (attributes.seo.metaImage.data.attributes.url.startsWith('http') 
+                  ? attributes.seo.metaImage.data.attributes.url 
+                  : `https://smarthoster-blogs.onrender.com${attributes.seo.metaImage.data.attributes.url}`)
+              : (attributes.coverImage?.data?.attributes?.url 
                 ? attributes.coverImage.data.attributes.url
                 : attributes.coverImage?.url
                 ? attributes.coverImage.url
-                : 'https://res.cloudinary.com/dd5notzuv/image/upload/c_fill,w_400,h_250/v1761401047/Real-logo_aaqxgq.jpg';
-              return imageUrl.startsWith('http') ? imageUrl : `https://smarthoster-blogs.onrender.com${imageUrl}`;
-            })(),
-            canonicalUrl: `/blog/${attributes.slug}`,
+                : 'https://res.cloudinary.com/dd5notzuv/image/upload/c_fill,w_400,h_250/v1761401047/Real-logo_aaqxgq.jpg'),
+            canonicalUrl: attributes.seo?.canonicalURL || `/blog/${attributes.slug}`,
+            keywords: attributes.seo?.keywords || attributes.tags,
+            metaRobots: attributes.seo?.metaRobots || 'INDEX,FOLLOW',
+            structuredData: attributes.seo?.structuredData || null,
             category: attributes.category || 'General',
             tags: attributes.tags ? 
               (typeof attributes.tags === 'string' 
