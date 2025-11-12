@@ -14,6 +14,7 @@ export const strapiApi = {
         'pagination[pageSize]': String(params?.pageSize || 50),
         'sort': params?.sort || 'publishedAt:desc',
         'populate': '*,seo,seo.metaImage,coverImage',
+        'filters[publishedAt][$notNull]': 'true', // Only get published posts
       });
       
       const response = await fetch(`${STRAPI_URL}/api/blogs?${searchParams}`, {
@@ -40,6 +41,7 @@ export const strapiApi = {
     try {
       const searchParams = new URLSearchParams({
         'filters[slug][$eq]': slug,
+        'filters[publishedAt][$notNull]': 'true', // Only get published posts
         'populate': '*,seo,seo.metaImage,coverImage'
       });
       
@@ -91,6 +93,7 @@ export const strapiApi = {
         'filters[$or][0][title][$containsi]': query,
         'filters[$or][1][excerpt][$containsi]': query,
         'filters[$or][2][content][$containsi]': query,
+        'filters[publishedAt][$notNull]': 'true', // Only get published posts
         'populate': '*,seo,seo.metaImage,coverImage',
         'sort': 'publishedAt:desc'
       });
