@@ -1,3 +1,20 @@
 User-agent: *
 Allow: /
-Sitemap: https://smarthoster.io/sitemap.xml
+
+# Allow AI crawlers for SEO
+User-agent: GPTBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+# Sitemaps for all languages
+Sitemap: https://www.smarthoster.io/sitemap.xml
+Sitemap: https://www.smarthoster.io/pt/sitemap.xml
+Sitemap: https://www.smarthoster.io/fr/sitemap.xml
+
+# Preferred domain
+Host: https://www.smarthoster.io
