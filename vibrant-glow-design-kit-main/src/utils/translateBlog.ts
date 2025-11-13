@@ -63,6 +63,14 @@ export const translateBlogContent = async (targetLanguage: string): Promise<void
   console.log('🌐 Translating blog content to:', targetLang);
 
   try {
+    // Check if we're already rate limited (from previous attempts)
+    const rateLimitFlag = localStorage.getItem('translation_rate_limited');
+    if (rateLimitFlag === 'true') {
+      console.warn('⚠️ Translation is rate limited. Showing original content.');
+      isTranslating = false;
+      return;
+    }
+
     // Find all blog content containers
     const blogContainers = document.querySelectorAll('.blog-content-translate');
     
@@ -80,6 +88,12 @@ export const translateBlogContent = async (targetLanguage: string): Promise<void
     // Translate all containers sequentially to avoid rate limits
     // Process one at a time with delays
     for (const container of Array.from(blogContainers)) {
+      // Check rate limit flag before each container
+      if (localStorage.getItem('translation_rate_limited') === 'true') {
+        console.warn('⚠️ Rate limit detected. Stopping translation.');
+        break;
+      }
+      
       await translateContainer(container as HTMLElement, targetLang);
       // Small delay between containers to avoid rate limiting
       await new Promise(resolve => setTimeout(resolve, 200));

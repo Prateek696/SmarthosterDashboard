@@ -8,6 +8,13 @@ const TRANSLATION_CACHE_KEY = 'blog_translations_cache';
 const CACHE_EXPIRY_DAYS = 7;
 const MAX_BATCH_SIZE = 500; // Maximum characters per API call
 
+// Global rate limit flag - stops all translation attempts when true
+// Check localStorage on initialization
+let isRateLimited = false;
+if (typeof window !== 'undefined') {
+  isRateLimited = localStorage.getItem('translation_rate_limited') === 'true';
+}
+
 interface TranslationCache {
   [key: string]: {
     text: string;
@@ -57,6 +64,11 @@ const translateText = async (text: string, targetLang: string): Promise<string> 
     return text;
   }
 
+  // If rate limited, don't make any API calls - just return original
+  if (isRateLimited) {
+    return text;
+  }
+
   // Limit text length to avoid API issues (MyMemory has limits)
   const maxLength = 500;
   if (text.length > maxLength) {
@@ -91,8 +103,11 @@ const translateText = async (text: string, targetLang: string): Promise<string> 
     
     if (!response.ok) {
       if (response.status === 429) {
-        // Rate limited - stop trying and return original
-        console.warn('⚠️ Translation API rate limited (429). Free tier limit reached. Showing original content.');
+        // Rate limited - set global flag and stop all future attempts
+        isRateLimited = true;
+        // Store in localStorage to persist across page reloads
+        localStorage.setItem('translation_rate_limited', 'true');
+        console.warn('⚠️ Translation API rate limited (429). Free tier limit reached. Stopping all translation attempts.');
         // Don't cache rate limit errors - we want to retry later
         return text;
       }
@@ -131,8 +146,10 @@ const translateText = async (text: string, targetLang: string): Promise<string> 
         return text;
       }
     } else if (data.responseStatus === 429) {
-      // Rate limited - return original text
-      console.warn('Translation API rate limited - using original text');
+      // Rate limited - set global flag and stop all future attempts
+      isRateLimited = true;
+      localStorage.setItem('translation_rate_limited', 'true');
+      console.warn('⚠️ Translation API rate limited (429). Stopping all translation attempts.');
       return text;
     } else {
       // Log the actual response for debugging
@@ -211,10 +228,9 @@ const translateBatch = async (texts: string[], targetLang: string): Promise<stri
 
   // Translate uncached texts one at a time to avoid rate limiting
   // MyMemory free tier has strict limits (10,000 words/day)
-  let rateLimited = false;
   for (const { text, index } of uncachedTexts) {
-    if (rateLimited) {
-      // If we hit rate limit, just use original text for remaining items
+    // Check global rate limit flag - if set, skip all remaining translations
+    if (isRateLimited) {
       results[index] = text;
       continue;
     }
@@ -223,13 +239,11 @@ const translateBatch = async (texts: string[], targetLang: string): Promise<stri
       const translated = await translateText(text, targetLang);
       results[index] = translated;
       // Delay between requests to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 500));
-    } catch (error: any) {
-      // Check if it's a rate limit error
-      if (error?.message?.includes('429') || error?.status === 429) {
-        rateLimited = true;
-        console.warn('⚠️ Rate limit reached. Stopping translation and showing original content.');
+      // Only delay if not rate limited
+      if (!isRateLimited) {
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
+    } catch (error: any) {
       console.warn(`Translation failed for text at index ${index}:`, error);
       results[index] = text; // Use original text on error
     }
@@ -310,4 +324,23 @@ export const clearTranslationCache = (): void => {
   } catch (e) {
     console.warn('Failed to clear translation cache:', e);
   }
+};
+
+/**
+ * Reset rate limit flag (call this when you want to retry translation)
+ */
+export const resetRateLimit = (): void => {
+  isRateLimited = false;
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('translation_rate_limited');
+  }
+  console.log('✅ Rate limit flag reset');
+};
+
+/**
+ * Check if translation is currently rate limited
+ */
+export const isTranslationRateLimited = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return isRateLimited || localStorage.getItem('translation_rate_limited') === 'true';
 };
