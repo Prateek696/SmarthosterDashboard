@@ -19,7 +19,7 @@ const LanguageBand = () => {
   };
 
   return (
-    <div className="bg-gray-50 border-b border-gray-200 py-3 sm:py-3 fixed top-0 left-0 right-0 z-50">
+    <div className="bg-gray-50 border-b border-gray-200 py-3 sm:py-3 fixed top-0 left-0 right-0 z-50 notranslate">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-center sm:justify-between">
           <div className="hidden sm:flex items-center text-gray-600">

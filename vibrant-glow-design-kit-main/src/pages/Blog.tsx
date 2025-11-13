@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import BlogGrid from '@/components/blog/BlogGrid';
@@ -26,16 +26,8 @@ const Blog = () => {
   // Track page analytics
   useScrollDepthTracking(location.pathname);
 
-  // Fetch generated content and Strapi posts from database
-  useEffect(() => {
-    fetchGeneratedContent();
-    fetchStrapiPosts();
-    
-    // Track page view
-    analytics.trackPageView(location.pathname, `Blog - ${currentLanguage.toUpperCase()}`);
-  }, [currentLanguage, location.pathname]);
-
-  const fetchGeneratedContent = async () => {
+  // Memoize fetch functions to prevent stale closures
+  const fetchGeneratedContent = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('generated_content')
@@ -70,9 +62,9 @@ const Blog = () => {
     } catch (error) {
       console.error('Error fetching generated content:', error);
     }
-  };
+  }, [currentLanguage]);
 
-  const fetchStrapiPosts = async () => {
+  const fetchStrapiPosts = useCallback(async () => {
     try {
       console.log('🔍 Fetching Strapi posts...');
       console.log('🌐 Environment:', import.meta.env.MODE);
@@ -81,13 +73,27 @@ const Blog = () => {
       
       // For now, fetch all Strapi posts regardless of language
       // TODO: Add language filter to Strapi when multi-language is implemented
+      // The language field exists in schema but is optional - posts without it will show in all languages
       const response = await strapiApi.getBlogs();
       console.log('📊 Strapi API response:', response);
       console.log('📊 Response data:', response.data);
       
       if (response.data && response.data.length > 0) {
         // Transform Strapi posts to match blog post format
-        const transformedPosts = response.data.map((item: any) => {
+        // Filter by language field only if it exists, otherwise show in all languages
+        const transformedPosts = response.data
+          .filter((item: any) => {
+            // If post has language field, only show if it matches current language
+            // If no language field, show in all languages (backward compatibility)
+            const attributes = item.attributes || item;
+            const postLanguage = attributes.language;
+            if (postLanguage) {
+              return postLanguage === currentLanguage;
+            }
+            // No language field = show in all languages
+            return true;
+          })
+          .map((item: any) => {
           console.log('🔍 Processing item:', item);
           
           // Handle both Strapi v4 and v5 data structures
@@ -202,7 +208,16 @@ const Blog = () => {
       console.error('❌ Error fetching Strapi posts:', error);
       setStrapiPosts([]);
     }
-  };
+  }, [currentLanguage]);
+
+  // Fetch generated content and Strapi posts from database
+  useEffect(() => {
+    fetchGeneratedContent();
+    fetchStrapiPosts();
+    
+    // Track page view
+    analytics.trackPageView(location.pathname, `Blog - ${currentLanguage.toUpperCase()}`);
+  }, [currentLanguage, location.pathname, fetchGeneratedContent, fetchStrapiPosts]);
 
   // Get posts and categories for current language
   const staticPosts = allBlogPosts[currentLanguage] || allBlogPosts.en;

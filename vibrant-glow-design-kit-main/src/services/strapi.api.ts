@@ -13,20 +13,31 @@ export const strapiApi = {
     pageSize?: number;
     sort?: string;
     filters?: any;
+    locale?: string; // Strapi locale code (en, pt, fr)
   }) {
     try {
-      // Strapi v5 populate syntax - use 'deep' to populate all nested relations
-      const searchParams = new URLSearchParams({
-        'pagination[page]': String(params?.page || 1),
-        'pagination[pageSize]': String(params?.pageSize || 50),
-        'sort': params?.sort || 'publishedAt:desc',
-        'populate': 'deep', // Populate all fields including nested relations
-      });
+      // Strapi v5 populate syntax - use '*' for all first-level relations
+      // For nested components, specify them explicitly
+      // Build query string manually to handle nested brackets correctly
+      const queryParams = [
+        `pagination[page]=${params?.page || 1}`,
+        `pagination[pageSize]=${params?.pageSize || 50}`,
+        `sort=${params?.sort || 'publishedAt:desc'}`,
+        'populate=*',
+        'populate[seo][populate]=*',
+        'populate[coverImage][populate]=*',
+      ];
+      
+      // Add locale filter if provided (for Strapi i18n)
+      // Note: Only filter if Strapi i18n is enabled, otherwise show all posts
+      // if (params?.locale) {
+      //   queryParams.push(`locale=${params.locale}`);
+      // }
       
       // Strapi v5 returns only published content by default
       // No need to filter - drafts are automatically excluded
       
-      const response = await fetch(`${STRAPI_URL}/api/blogs?${searchParams}`, {
+      const response = await fetch(`${STRAPI_URL}/api/blogs?${queryParams.join('&')}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -55,14 +66,17 @@ export const strapiApi = {
   // Get single blog post by slug
   async getBlogBySlug(slug: string) {
     try {
-      const searchParams = new URLSearchParams({
-        'filters[slug][$eq]': slug,
-        'populate': 'deep', // Populate all fields including nested relations
-      });
+      // Build query string manually to handle nested brackets correctly
+      const queryParams = [
+        `filters[slug][$eq]=${encodeURIComponent(slug)}`,
+        'populate=*',
+        'populate[seo][populate]=*',
+        'populate[coverImage][populate]=*',
+      ];
       
       // Strapi v5 returns only published content by default
       
-      const response = await fetch(`${STRAPI_URL}/api/blogs?${searchParams}`, {
+      const response = await fetch(`${STRAPI_URL}/api/blogs?${queryParams.join('&')}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -84,11 +98,14 @@ export const strapiApi = {
   // Get blog by ID
   async getBlogById(id: string) {
     try {
-      const populateParams = new URLSearchParams({
-        'populate': 'deep', // Populate all fields including nested relations
-      });
+      // Build query string manually to handle nested brackets correctly
+      const queryParams = [
+        'populate=*',
+        'populate[seo][populate]=*',
+        'populate[coverImage][populate]=*',
+      ];
       
-      const response = await fetch(`${STRAPI_URL}/api/blogs/${id}?${populateParams}`, {
+      const response = await fetch(`${STRAPI_URL}/api/blogs/${id}?${queryParams.join('&')}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -110,17 +127,21 @@ export const strapiApi = {
   // Search blogs by query
   async searchBlogs(query: string) {
     try {
-      const searchParams = new URLSearchParams({
-        'filters[$or][0][title][$containsi]': query,
-        'filters[$or][1][excerpt][$containsi]': query,
-        'filters[$or][2][content][$containsi]': query,
-        'populate': 'deep', // Populate all fields including nested relations
-        'sort': 'publishedAt:desc'
-      });
+      // Build query string manually to handle nested brackets correctly
+      const encodedQuery = encodeURIComponent(query);
+      const queryParams = [
+        `filters[$or][0][title][$containsi]=${encodedQuery}`,
+        `filters[$or][1][excerpt][$containsi]=${encodedQuery}`,
+        `filters[$or][2][content][$containsi]=${encodedQuery}`,
+        'populate=*',
+        'populate[seo][populate]=*',
+        'populate[coverImage][populate]=*',
+        'sort=publishedAt:desc',
+      ];
       
       // Strapi v5 returns only published content by default
       
-      const response = await fetch(`${STRAPI_URL}/api/blogs?${searchParams}`, {
+      const response = await fetch(`${STRAPI_URL}/api/blogs?${queryParams.join('&')}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

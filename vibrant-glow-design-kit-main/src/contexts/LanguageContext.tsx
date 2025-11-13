@@ -224,6 +224,22 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   const setLanguage = (language: Language) => {
     setCurrentLanguage(language);
     localStorage.setItem('language', language);
+    
+    // Trigger blog content translation when language changes
+    // Use setTimeout to ensure DOM is updated
+    setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        // Dynamically import to avoid SSR issues
+        import('../utils/translateBlog').then(({ translateBlogContent }) => {
+          console.log('🔄 Language changed to:', language, '- Translating blog content...');
+          translateBlogContent(language).catch((error) => {
+            console.error('❌ Translation failed:', error);
+          });
+        }).catch((error) => {
+          console.error('❌ Translation utility failed to load:', error);
+        });
+      }
+    }, 300);
   };
 
   const t = translations[currentLanguage];

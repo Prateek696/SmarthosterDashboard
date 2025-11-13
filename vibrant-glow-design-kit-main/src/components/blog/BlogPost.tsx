@@ -19,7 +19,12 @@ interface BlogPostProps {
 const BlogPost = ({ post, relatedPosts }: BlogPostProps) => {
   const [toc, setToc] = useState<any[]>([]);
   const { currentLanguage } = useLanguage();
-  const languageVariants = getBlogLanguageVariants(post.slug);
+  
+  // Memoize language variants to prevent infinite loop
+  const languageVariants = React.useMemo(
+    () => getBlogLanguageVariants(post.slug),
+    [post.slug]
+  );
 
   useEffect(() => {
     const headings = generateTableOfContents(post.content);
@@ -112,7 +117,7 @@ const BlogPost = ({ post, relatedPosts }: BlogPostProps) => {
   return (
     <>
       <BlogSEO post={post} />
-      <article className="max-w-4xl mx-auto" itemScope itemType="https://schema.org/Article">
+      <article className="max-w-4xl mx-auto blog-content-translate" itemScope itemType="https://schema.org/Article">
         {/* Breadcrumb with structured data */}
         <nav className="mb-8" itemScope itemType="https://schema.org/BreadcrumbList">
           <Link 
