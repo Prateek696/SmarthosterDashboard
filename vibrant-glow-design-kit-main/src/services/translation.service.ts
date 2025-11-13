@@ -64,8 +64,8 @@ const translateText = async (text: string, targetLang: string): Promise<string> 
     return text;
   }
 
-  // If rate limited, don't make any API calls - just return original
-  if (isRateLimited) {
+  // Check rate limit flag - if set, don't make API calls
+  if (isRateLimited || (typeof window !== 'undefined' && localStorage.getItem('translation_rate_limited') === 'true')) {
     return text;
   }
 
@@ -228,9 +228,12 @@ const translateBatch = async (texts: string[], targetLang: string): Promise<stri
 
   // Translate uncached texts one at a time to avoid rate limiting
   // MyMemory free tier has strict limits (10,000 words/day)
+  // Strategy: Send ONE test request first, if it fails (429), stop all future requests
+  let firstRequestDone = false;
+  
   for (const { text, index } of uncachedTexts) {
-    // Check global rate limit flag - if set, skip all remaining translations
-    if (isRateLimited) {
+    // Check rate limit flag - if set, skip all remaining translations
+    if (isRateLimited || (typeof window !== 'undefined' && localStorage.getItem('translation_rate_limited') === 'true')) {
       results[index] = text;
       continue;
     }
@@ -238,9 +241,23 @@ const translateBatch = async (texts: string[], targetLang: string): Promise<stri
     try {
       const translated = await translateText(text, targetLang);
       results[index] = translated;
-      // Delay between requests to avoid rate limiting
-      // Only delay if not rate limited
-      if (!isRateLimited) {
+      
+      // After first request, check if we got rate limited
+      if (!firstRequestDone) {
+        firstRequestDone = true;
+        // Check if rate limit was set during the first request
+        if (isRateLimited || (typeof window !== 'undefined' && localStorage.getItem('translation_rate_limited') === 'true')) {
+          console.warn('⚠️ Rate limit detected on first request. Stopping all translation attempts.');
+          // Fill remaining results with original text
+          for (let j = index + 1; j < uncachedTexts.length; j++) {
+            results[uncachedTexts[j].index] = uncachedTexts[j].text;
+          }
+          break; // Stop processing
+        }
+      }
+      
+      // Delay between requests to avoid rate limiting (only if not rate limited)
+      if (!isRateLimited && !(typeof window !== 'undefined' && localStorage.getItem('translation_rate_limited') === 'true')) {
         await new Promise(resolve => setTimeout(resolve, 500));
       }
     } catch (error: any) {

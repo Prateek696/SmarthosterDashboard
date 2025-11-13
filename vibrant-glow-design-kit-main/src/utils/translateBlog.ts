@@ -63,14 +63,6 @@ export const translateBlogContent = async (targetLanguage: string): Promise<void
   console.log('🌐 Translating blog content to:', targetLang);
 
   try {
-    // Check if we're already rate limited (from previous attempts)
-    const rateLimitFlag = localStorage.getItem('translation_rate_limited');
-    if (rateLimitFlag === 'true') {
-      console.warn('⚠️ Translation is rate limited. Showing original content.');
-      isTranslating = false;
-      return;
-    }
-
     // Find all blog content containers
     const blogContainers = document.querySelectorAll('.blog-content-translate');
     
@@ -85,8 +77,10 @@ export const translateBlogContent = async (targetLanguage: string): Promise<void
       showLoading(container as HTMLElement);
     });
 
-    // Translate all containers sequentially to avoid rate limits
-    // Process one at a time with delays
+    // Strategy: Translate first container as a test
+    // If it works, continue. If rate limited, stop immediately.
+    let firstContainerDone = false;
+    
     for (const container of Array.from(blogContainers)) {
       // Check rate limit flag before each container
       if (localStorage.getItem('translation_rate_limited') === 'true') {
@@ -95,6 +89,18 @@ export const translateBlogContent = async (targetLanguage: string): Promise<void
       }
       
       await translateContainer(container as HTMLElement, targetLang);
+      
+      // After first container, check if we got rate limited
+      if (!firstContainerDone) {
+        firstContainerDone = true;
+        // Wait a moment and check if rate limit was set
+        await new Promise(resolve => setTimeout(resolve, 300));
+        if (localStorage.getItem('translation_rate_limited') === 'true') {
+          console.warn('⚠️ Rate limit detected after first container. Stopping all translation.');
+          break; // Stop processing remaining containers
+        }
+      }
+      
       // Small delay between containers to avoid rate limiting
       await new Promise(resolve => setTimeout(resolve, 200));
     }
