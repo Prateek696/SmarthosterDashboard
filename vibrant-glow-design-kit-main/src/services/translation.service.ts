@@ -57,6 +57,20 @@ const translateText = async (text: string, targetLang: string): Promise<string> 
     return text;
   }
 
+  // Limit text length to avoid API issues (MyMemory has limits)
+  const maxLength = 500;
+  if (text.length > maxLength) {
+    // Split and translate in chunks
+    const chunks: string[] = [];
+    for (let i = 0; i < text.length; i += maxLength) {
+      chunks.push(text.substring(i, i + maxLength));
+    }
+    const translatedChunks = await Promise.all(
+      chunks.map(chunk => translateText(chunk, targetLang))
+    );
+    return translatedChunks.join('');
+  }
+
   // Check cache first
   const cache = getCache();
   const cacheKey = getCacheKey(text, targetLang);
@@ -68,26 +82,85 @@ const translateText = async (text: string, targetLang: string): Promise<string> 
     // MyMemory Translation API (free, no API key required)
     const apiUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|${targetLang}`;
     
-    const response = await fetch(apiUrl);
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+    
     if (!response.ok) {
-      throw new Error(`Translation API error: ${response.status}`);
+      console.warn(`Translation API HTTP error: ${response.status} ${response.statusText}`);
+      return text; // Return original on HTTP error
     }
 
     const data = await response.json();
     
+    // Log response for debugging (always log warnings in production)
+    if (data.responseStatus !== 200) {
+      console.warn('Translation API response:', {
+        status: data.responseStatus,
+        data: data.responseData,
+        matches: data.matches,
+        textLength: text.length
+      });
+    }
+    
+    // Handle different response formats
     if (data.responseStatus === 200 && data.responseData?.translatedText) {
       const translated = data.responseData.translatedText;
       
-      // Save to cache
-      cache[cacheKey] = {
-        text: translated,
-        timestamp: Date.now()
-      };
-      saveCache(cache);
-      
-      return translated;
+      // Validate translation (shouldn't be empty or same as original)
+      if (translated && translated.trim().length > 0 && translated !== text) {
+        // Save to cache
+        cache[cacheKey] = {
+          text: translated,
+          timestamp: Date.now()
+        };
+        saveCache(cache);
+        
+        return translated;
+      } else {
+        console.warn('Translation API returned empty or invalid translation');
+        return text;
+      }
+    } else if (data.responseStatus === 429) {
+      // Rate limited - return original text
+      console.warn('Translation API rate limited - using original text');
+      return text;
     } else {
-      throw new Error('Translation API returned invalid response');
+      // Log the actual response for debugging
+      console.warn('Translation API returned unexpected response:', {
+        status: data.responseStatus,
+        statusText: data.responseStatusText,
+        data: data.responseData,
+        matches: data.matches,
+        fullResponse: JSON.stringify(data).substring(0, 500)
+      });
+      
+      // Try multiple fallback strategies
+      // 1. Try matches array
+      if (data.matches && Array.isArray(data.matches) && data.matches.length > 0) {
+        const bestMatch = data.matches[0];
+        if (bestMatch.translation && bestMatch.translation.trim().length > 0) {
+          console.log('Using fallback match translation');
+          return bestMatch.translation;
+        }
+      }
+      
+      // 2. Try responseData directly (different format)
+      if (data.responseData) {
+        if (typeof data.responseData === 'string') {
+          return data.responseData;
+        }
+        if (data.responseData.translatedText) {
+          return data.responseData.translatedText;
+        }
+      }
+      
+      // 3. Return original text (graceful degradation)
+      console.warn('No valid translation found, returning original text');
+      return text;
     }
   } catch (error) {
     console.error('Translation error:', error);
@@ -130,51 +203,28 @@ const translateBatch = async (texts: string[], targetLang: string): Promise<stri
     return results;
   }
 
-  // Batch translate uncached texts
-  // Combine small texts into batches to reduce API calls
-  const batches: string[][] = [];
-  let currentBatch: string[] = [];
-  let currentBatchSize = 0;
-
-  for (const { text } of uncachedTexts) {
-    const textSize = text.length;
+  // Translate uncached texts individually (more reliable than batching)
+  // Process in smaller batches to avoid rate limiting
+  const batchSize = 3;
+  for (let i = 0; i < uncachedTexts.length; i += batchSize) {
+    const batch = uncachedTexts.slice(i, i + batchSize);
     
-    if (currentBatchSize + textSize > MAX_BATCH_SIZE && currentBatch.length > 0) {
-      batches.push(currentBatch);
-      currentBatch = [text];
-      currentBatchSize = textSize;
-    } else {
-      currentBatch.push(text);
-      currentBatchSize += textSize;
+    // Translate each text individually (more reliable)
+    const batchPromises = batch.map(({ text, index }) => 
+      translateText(text, targetLang).then(translated => {
+        results[index] = translated;
+      }).catch(error => {
+        console.warn(`Translation failed for text at index ${index}:`, error);
+        results[index] = batch.find(b => b.index === index)?.text || '';
+      })
+    );
+
+    await Promise.all(batchPromises);
+    
+    // Small delay between batches to avoid rate limiting
+    if (i + batchSize < uncachedTexts.length) {
+      await new Promise(resolve => setTimeout(resolve, 300));
     }
-  }
-  
-  if (currentBatch.length > 0) {
-    batches.push(currentBatch);
-  }
-
-  // Translate batches in parallel (up to 3 at a time to avoid rate limiting)
-  const parallelLimit = 3;
-  for (let i = 0; i < batches.length; i += parallelLimit) {
-    const batchGroup = batches.slice(i, i + parallelLimit);
-    const batchPromises = batchGroup.map(batch => {
-      const combinedText = batch.join('\n\n---SEPARATOR---\n\n');
-      return translateText(combinedText, targetLang);
-    });
-
-    const batchResults = await Promise.all(batchPromises);
-    
-    // Split results back
-    batchResults.forEach((combinedResult, batchIndex) => {
-      const batch = batchGroup[batchIndex];
-      const splitResults = combinedResult.split('\n\n---SEPARATOR---\n\n');
-      
-      batch.forEach((originalText, textIndex) => {
-        const uncachedIndex = batches.slice(0, i + batchIndex).reduce((sum, b) => sum + b.length, 0) + textIndex;
-        const { index } = uncachedTexts[uncachedIndex];
-        results[index] = splitResults[textIndex] || originalText;
-      });
-    });
   }
 
   return results;
