@@ -90,6 +90,12 @@ const translateText = async (text: string, targetLang: string): Promise<string> 
     });
     
     if (!response.ok) {
+      if (response.status === 429) {
+        // Rate limited - stop trying and return original
+        console.warn('⚠️ Translation API rate limited (429). Free tier limit reached. Showing original content.');
+        // Don't cache rate limit errors - we want to retry later
+        return text;
+      }
       console.warn(`Translation API HTTP error: ${response.status} ${response.statusText}`);
       return text; // Return original on HTTP error
     }
@@ -203,27 +209,29 @@ const translateBatch = async (texts: string[], targetLang: string): Promise<stri
     return results;
   }
 
-  // Translate uncached texts individually (more reliable than batching)
-  // Process in smaller batches to avoid rate limiting
-  const batchSize = 3;
-  for (let i = 0; i < uncachedTexts.length; i += batchSize) {
-    const batch = uncachedTexts.slice(i, i + batchSize);
+  // Translate uncached texts one at a time to avoid rate limiting
+  // MyMemory free tier has strict limits (10,000 words/day)
+  let rateLimited = false;
+  for (const { text, index } of uncachedTexts) {
+    if (rateLimited) {
+      // If we hit rate limit, just use original text for remaining items
+      results[index] = text;
+      continue;
+    }
     
-    // Translate each text individually (more reliable)
-    const batchPromises = batch.map(({ text, index }) => 
-      translateText(text, targetLang).then(translated => {
-        results[index] = translated;
-      }).catch(error => {
-        console.warn(`Translation failed for text at index ${index}:`, error);
-        results[index] = batch.find(b => b.index === index)?.text || '';
-      })
-    );
-
-    await Promise.all(batchPromises);
-    
-    // Small delay between batches to avoid rate limiting
-    if (i + batchSize < uncachedTexts.length) {
-      await new Promise(resolve => setTimeout(resolve, 300));
+    try {
+      const translated = await translateText(text, targetLang);
+      results[index] = translated;
+      // Delay between requests to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 500));
+    } catch (error: any) {
+      // Check if it's a rate limit error
+      if (error?.message?.includes('429') || error?.status === 429) {
+        rateLimited = true;
+        console.warn('⚠️ Rate limit reached. Stopping translation and showing original content.');
+      }
+      console.warn(`Translation failed for text at index ${index}:`, error);
+      results[index] = text; // Use original text on error
     }
   }
 

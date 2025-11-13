@@ -77,12 +77,13 @@ export const translateBlogContent = async (targetLanguage: string): Promise<void
       showLoading(container as HTMLElement);
     });
 
-    // Translate all containers in parallel for speed
-    const translationPromises = Array.from(blogContainers).map(container => 
-      translateContainer(container as HTMLElement, targetLang)
-    );
-
-    await Promise.all(translationPromises);
+    // Translate all containers sequentially to avoid rate limits
+    // Process one at a time with delays
+    for (const container of Array.from(blogContainers)) {
+      await translateContainer(container as HTMLElement, targetLang);
+      // Small delay between containers to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
 
     // Hide loading state
     blogContainers.forEach(container => {
@@ -96,6 +97,8 @@ export const translateBlogContent = async (targetLanguage: string): Promise<void
     document.querySelectorAll('.blog-content-translate').forEach(container => {
       hideLoading(container as HTMLElement);
     });
+    // Don't throw - just log and continue
+    // Translation failures are handled gracefully by returning original text
   } finally {
     isTranslating = false;
   }
@@ -105,21 +108,28 @@ export const translateBlogContent = async (targetLanguage: string): Promise<void
  * Translate a single container element
  */
 const translateContainer = async (container: HTMLElement, targetLang: string): Promise<void> => {
-  // Store original content if not already stored
-  if (!container.dataset.originalContent) {
-    container.dataset.originalContent = container.innerHTML;
-  }
+  try {
+    // Store original content if not already stored
+    if (!container.dataset.originalContent) {
+      container.dataset.originalContent = container.innerHTML;
+    }
 
-  const originalHTML = container.dataset.originalContent;
-  
-  // Translate the HTML content (now optimized with batching)
-  const translatedHTML = await translateHTMLContent(originalHTML, targetLang);
-  
-  // Update the container
-  container.innerHTML = translatedHTML;
-  
-  // Mark as translated
-  container.dataset.translatedLang = targetLang;
+    const originalHTML = container.dataset.originalContent;
+    
+    // Translate the HTML content (now optimized with batching)
+    // translateHTMLContent never throws - it returns original text on error
+    const translatedHTML = await translateHTMLContent(originalHTML, targetLang);
+    
+    // Update the container
+    container.innerHTML = translatedHTML;
+    
+    // Mark as translated
+    container.dataset.translatedLang = targetLang;
+  } catch (error) {
+    // Extra safety - if anything throws, just keep original content
+    console.warn('Container translation error (using original):', error);
+    // Don't throw - just leave content as is
+  }
 };
 
 /**
