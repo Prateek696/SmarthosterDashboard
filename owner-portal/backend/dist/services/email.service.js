@@ -50,7 +50,7 @@ const transporter = nodemailer.createTransport({
  */
 const sendWelcomeEmail = async (data) => {
     try {
-        const { name, email, password, portalUrl = process.env.PORTAL_URL || 'https://smarthoster-test-deploy-final.vercel.app' } = data;
+        const { name, email, password, portalUrl = process.env.PORTAL_URL || 'https://www.smarthoster.io/' } = data;
         console.log(`📧 Sending welcome email to: ${email}`);
         const mailOptions = {
             from: process.env.EMAIL_FROM || process.env.SMTP_USER,
@@ -215,7 +215,7 @@ exports.sendWelcomeEmail = sendWelcomeEmail;
  */
 const sendAccountantWelcomeEmail = async (data) => {
     try {
-        const { name, email, password, portalUrl = process.env.PORTAL_URL || 'https://smarthoster-test-deploy-final.vercel.app' } = data;
+        const { name, email, password, portalUrl = process.env.PORTAL_URL || 'https://www.smarthoster.io/' } = data;
         console.log(`📧 Sending welcome email to accountant: ${email}`);
         const mailOptions = {
             from: process.env.EMAIL_FROM || process.env.SMTP_USER,

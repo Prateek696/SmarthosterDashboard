@@ -18,7 +18,7 @@ export const sendOwnerWelcomeEmail = async (req: Request, res: Response) => {
       name,
       email,
       password,
-      portalUrl: portalUrl || process.env.PORTAL_URL || 'https://smarthoster-test-deploy-final.vercel.app'
+      portalUrl: portalUrl || process.env.PORTAL_URL || 'https://www.smarthoster.io/'
     });
 
     if (!emailSent) {
@@ -51,7 +51,7 @@ export const sendAccountantWelcomeEmailAPI = async (req: Request, res: Response)
       name,
       email,
       password,
-      portalUrl: portalUrl || process.env.PORTAL_URL || 'https://smarthoster-test-deploy-final.vercel.app'
+      portalUrl: portalUrl || process.env.PORTAL_URL || 'https://www.smarthoster.io/'
     });
 
     if (!emailSent) {

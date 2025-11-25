@@ -16,7 +16,7 @@ const sendOwnerWelcomeEmail = async (req, res) => {
             name,
             email,
             password,
-            portalUrl: portalUrl || process.env.PORTAL_URL || 'https://smarthoster-test-deploy-final.vercel.app'
+            portalUrl: portalUrl || process.env.PORTAL_URL || 'https://www.smarthoster.io/'
         });
         if (!emailSent) {
             return res.status(500).json({ message: "Failed to send welcome email" });
@@ -44,7 +44,7 @@ const sendAccountantWelcomeEmailAPI = async (req, res) => {
             name,
             email,
             password,
-            portalUrl: portalUrl || process.env.PORTAL_URL || 'https://smarthoster-test-deploy-final.vercel.app'
+            portalUrl: portalUrl || process.env.PORTAL_URL || 'https://www.smarthoster.io/'
         });
         if (!emailSent) {
             return res.status(500).json({ message: "Failed to send welcome email" });

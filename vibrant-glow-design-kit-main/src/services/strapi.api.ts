@@ -29,10 +29,9 @@ export const strapiApi = {
       ];
       
       // Add locale filter if provided (for Strapi i18n)
-      // Note: Only filter if Strapi i18n is enabled, otherwise show all posts
-      // if (params?.locale) {
-      //   queryParams.push(`locale=${params.locale}`);
-      // }
+      if (params?.locale) {
+        queryParams.push(`locale=${params.locale}`);
+      }
       
       // Strapi v5 returns only published content by default
       // No need to filter - drafts are automatically excluded
@@ -64,7 +63,7 @@ export const strapiApi = {
   },
 
   // Get single blog post by slug
-  async getBlogBySlug(slug: string) {
+  async getBlogBySlug(slug: string, locale?: string) {
     try {
       // Build query string manually to handle nested brackets correctly
       const queryParams = [
@@ -73,6 +72,11 @@ export const strapiApi = {
         'populate[seo][populate]=*',
         'populate[coverImage][populate]=*',
       ];
+      
+      // Add locale filter if provided (for Strapi i18n)
+      if (locale) {
+        queryParams.push(`locale=${locale}`);
+      }
       
       // Strapi v5 returns only published content by default
       

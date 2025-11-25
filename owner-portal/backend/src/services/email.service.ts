@@ -23,7 +23,7 @@ interface WelcomeEmailData {
  */
 export const sendWelcomeEmail = async (data: WelcomeEmailData): Promise<boolean> => {
   try {
-    const { name, email, password, portalUrl = process.env.PORTAL_URL || 'https://smarthoster-test-deploy-final.vercel.app' } = data;
+    const { name, email, password, portalUrl = process.env.PORTAL_URL || 'https://www.smarthoster.io/' } = data;
 
     console.log(`📧 Sending welcome email to: ${email}`);
 
@@ -191,7 +191,7 @@ export const sendWelcomeEmail = async (data: WelcomeEmailData): Promise<boolean>
  */
 export const sendAccountantWelcomeEmail = async (data: WelcomeEmailData): Promise<boolean> => {
   try {
-    const { name, email, password, portalUrl = process.env.PORTAL_URL || 'https://smarthoster-test-deploy-final.vercel.app' } = data;
+    const { name, email, password, portalUrl = process.env.PORTAL_URL || 'https://www.smarthoster.io/' } = data;
 
     console.log(`📧 Sending welcome email to accountant: ${email}`);
 

@@ -435,7 +435,7 @@ export const createOwner = async (req: Request, res: Response) => {
         name,
         email,
         password, // Plain text password (before hashing)
-        portalUrl: process.env.PORTAL_URL || 'https://smarthoster-test-deploy-final.vercel.app'
+        portalUrl: process.env.PORTAL_URL || 'https://www.smarthoster.io/'
       }, {
         timeout: 10000 // 10 second timeout
       });

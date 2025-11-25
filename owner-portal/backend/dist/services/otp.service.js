@@ -74,7 +74,7 @@ const sendOTP = async (email, purpose) => {
         };
         otpStorage.set(email, otpData);
         console.log(`💾 Stored OTP for ${email}:`, otpData);
-        const portalUrl = process.env.PORTAL_URL || 'https://smarthoster-test-deploy-final.vercel.app';
+        const portalUrl = process.env.PORTAL_URL || 'https://www.smarthoster.io/';
         // Email content
         const subject = purpose === 'login' ? 'Login OTP' : purpose === 'signup' ? 'Account Verification OTP' : 'Password Reset OTP';
         const htmlContent = `
