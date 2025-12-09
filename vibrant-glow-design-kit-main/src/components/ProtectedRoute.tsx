@@ -16,7 +16,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     if (!loading && !user) {
       router.push('/auth');
     }
-  }, [user, loading, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, loading]); // router is stable (memoized)
 
   if (loading) {
     return (

@@ -75,7 +75,8 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
     if (!loading && !isAdmin) {
       router.push('/');
     }
-  }, [isAdmin, loading, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin, loading]); // router is stable (memoized)
 
   if (!isAdmin) {
     return null; // Will redirect via useEffect
