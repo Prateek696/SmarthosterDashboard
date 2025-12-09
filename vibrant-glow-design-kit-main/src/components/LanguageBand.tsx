@@ -52,8 +52,13 @@ const LanguageBand = () => {
     // Update language in context
     setLanguage(langCode);
     
-    // Use Next.js router for client-side navigation
-    router.push(newPath);
+    // Use window.location for reliable navigation (works better than router.push in some cases)
+    if (typeof window !== 'undefined') {
+      window.location.href = newPath;
+    } else {
+      // Fallback to router if window is not available
+      router.push(newPath);
+    }
   };
 
   return (
