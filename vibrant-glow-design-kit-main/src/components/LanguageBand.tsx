@@ -28,12 +28,17 @@ const LanguageBand = () => {
     return 0;
   });
 
-  const handleLanguageClick = (langCode: typeof languages[0]['code']) => {
+  const handleLanguageClick = (e: React.MouseEvent<HTMLButtonElement>, langCode: typeof languages[0]['code']) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Don't do anything if clicking the same language
+    if (langCode === activeLanguage) {
+      return;
+    }
+    
     console.log('🌐 Language clicked:', langCode);
     console.log('🌐 Current pathname:', pathname);
-    
-    // Update language in context
-    setLanguage(langCode);
     
     // Get current path without locale
     const currentPath = pathname || '/';
@@ -43,6 +48,9 @@ const LanguageBand = () => {
     const newPath = addLocalePrefix(pathWithoutLocale, langCode);
     
     console.log('🌐 Redirecting to:', newPath);
+    
+    // Update language in context
+    setLanguage(langCode);
     
     // Use Next.js router for client-side navigation
     router.push(newPath);
@@ -61,8 +69,9 @@ const LanguageBand = () => {
             {languages.map((lang) => (
               <button
                 key={lang.code}
-                onClick={() => handleLanguageClick(lang.code)}
-                className={`flex items-center space-x-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md transition-colors duration-200 text-xs sm:text-sm ${
+                type="button"
+                onClick={(e) => handleLanguageClick(e, lang.code)}
+                className={`flex items-center space-x-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md transition-colors duration-200 text-xs sm:text-sm cursor-pointer ${
                   activeLanguage === lang.code
                     ? 'bg-white text-gray-900 shadow-sm border border-gray-200'
                     : 'text-gray-700 hover:text-gray-900 hover:bg-white'
