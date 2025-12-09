@@ -1,6 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
+import { getLocaleFromPathname } from '@/utils/locale-helpers';
 
 // Import common translations
 import commonEn from '../data/translations/common/en.json';
@@ -220,23 +222,33 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   // Will be updated in useEffect on client side
   // Default is now Portuguese (pt) instead of English (en)
   const [currentLanguage, setCurrentLanguage] = useState<Language>('pt');
+  const pathname = usePathname();
 
-  // Detect browser language and load from localStorage on client side
+  // Sync language with URL pathname - this is the primary source of truth
   useEffect(() => {
-    // Check if localStorage is available (client side only)
-    if (typeof window !== 'undefined') {
-      const savedLanguage = localStorage.getItem('language') as Language;
+    if (typeof window !== 'undefined' && pathname) {
+      // Get locale from URL pathname (this is the source of truth)
+      const urlLocale = getLocaleFromPathname(pathname);
       
+      // Always sync with URL - URL is the source of truth
+      if (urlLocale && urlLocale !== currentLanguage) {
+        setCurrentLanguage(urlLocale);
+        // Also save to localStorage for consistency
+        localStorage.setItem('language', urlLocale);
+      }
+    } else if (typeof window !== 'undefined') {
+      // No pathname yet (SSR), check localStorage as fallback
+      const savedLanguage = localStorage.getItem('language') as Language;
       if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'fr' || savedLanguage === 'pt')) {
         setCurrentLanguage(savedLanguage);
       } else {
-        // No saved language, detect from browser
+        // Last resort: detect from browser
         const detectedLanguage = detectBrowserLanguage();
         setCurrentLanguage(detectedLanguage);
         localStorage.setItem('language', detectedLanguage);
       }
     }
-  }, []);
+  }, [pathname, currentLanguage]); // Re-run when pathname changes
 
   const setLanguage = (language: Language) => {
     setCurrentLanguage(language);

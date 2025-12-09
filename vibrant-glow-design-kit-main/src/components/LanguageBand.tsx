@@ -3,18 +3,30 @@
 import { Globe } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePathname, useRouter } from 'next/navigation';
-import { removeLocalePrefix, addLocalePrefix } from "@/utils/locale-helpers";
+import { removeLocalePrefix, addLocalePrefix, getLocaleFromPathname } from "@/utils/locale-helpers";
 
 const LanguageBand = () => {
   const { currentLanguage, setLanguage, t } = useLanguage();
   const pathname = usePathname();
   const router = useRouter();
   
+  // Get locale from URL (source of truth)
+  const urlLocale = pathname ? getLocaleFromPathname(pathname) : currentLanguage;
+  
+  // Use URL locale if available, otherwise use context language
+  const activeLanguage = urlLocale || currentLanguage;
+  
+  // Order languages: put current/active language first, then others
   const languages = [
+    { code: "pt" as const, name: "Português", flag: "🇵🇹" },
     { code: "en" as const, name: "English", flag: "🇺🇸" },
-    { code: "fr" as const, name: "Français", flag: "🇫🇷" },
-    { code: "pt" as const, name: "Português", flag: "🇵🇹" }
-  ];
+    { code: "fr" as const, name: "Français", flag: "🇫🇷" }
+  ].sort((a, b) => {
+    // Put active language first
+    if (a.code === activeLanguage) return -1;
+    if (b.code === activeLanguage) return 1;
+    return 0;
+  });
 
   const handleLanguageClick = (langCode: typeof languages[0]['code']) => {
     console.log('🌐 Language clicked:', langCode);
@@ -51,7 +63,7 @@ const LanguageBand = () => {
                 key={lang.code}
                 onClick={() => handleLanguageClick(lang.code)}
                 className={`flex items-center space-x-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md transition-colors duration-200 text-xs sm:text-sm ${
-                  currentLanguage === lang.code
+                  activeLanguage === lang.code
                     ? 'bg-white text-gray-900 shadow-sm border border-gray-200'
                     : 'text-gray-700 hover:text-gray-900 hover:bg-white'
                 }`}
