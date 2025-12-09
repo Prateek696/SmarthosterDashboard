@@ -1,0 +1,4 @@
+# Ignore middleware.ts for Vite builds
+# Vercel will still detect it, but we can try to prevent execution
+middleware.ts
+
