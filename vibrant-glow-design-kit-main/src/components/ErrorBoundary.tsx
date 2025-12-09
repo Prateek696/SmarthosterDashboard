@@ -19,6 +19,13 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // Ignore React DevTools Image constructor error
+    if (error.message?.includes("Failed to construct 'Image'") && errorInfo.componentStack?.includes('installHook')) {
+      console.warn('Suppressed React DevTools error:', error.message);
+      // Reset error state to allow app to continue
+      this.setState({ hasError: false, error: undefined });
+      return;
+    }
     console.error('Uncaught error:', error, errorInfo);
   }
 
