@@ -15,6 +15,12 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   public static getDerivedStateFromError(error: Error): State {
+    // Don't catch React DevTools errors
+    if (error.message?.includes("Failed to construct 'Image'") || 
+        error.stack?.includes('installHook')) {
+      // Return no error state - let it pass through
+      return { hasError: false };
+    }
     return { hasError: true, error };
   }
 
