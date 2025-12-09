@@ -34,3 +34,12 @@ jobs:
             -w "\nAuth OTP Status: %{http_code}\n" || true
           
           echo "✅ Keep-alive completed at $(date)"
+      
+      - name: Ping Strapi Staging Instance
+        run: |
+          echo "🚀 Pinging Strapi staging instance..."
+          STRAPI_URL="${STRAPI_STAGING_URL:-https://smarthoster-blogs-1.onrender.com}"
+          curl -f -s -o /dev/null -w "Strapi Status: %{http_code}\n" "${STRAPI_URL}/api" || echo "⚠️  Strapi might be spinning up..."
+          echo "✅ Strapi ping completed at $(date)"
+        env:
+          STRAPI_STAGING_URL: ${{ secrets.STRAPI_STAGING_URL || 'https://smarthoster-blogs-1.onrender.com' }}
