@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getStrapiText } from "@/utils/strapi-helpers";
-import Link from "next/link";
+import { Link } from '@/utils/next-compat';
 import { 
   Recycle, 
   Sun, 

@@ -9,7 +9,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { useLanguage } from "@/contexts/LanguageContext";
-import Link from "next/link";
+import { Link } from '@/utils/next-compat';
 import { extractComponent, getStrapiText, formatStrapiArray } from "@/utils/strapi-helpers";
 
 interface FeaturesProps {

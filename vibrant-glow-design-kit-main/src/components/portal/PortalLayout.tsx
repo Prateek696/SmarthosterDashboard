@@ -3,8 +3,8 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { LogOut, Home, FileText, Calendar, FolderOpen, MessageCircle } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Link } from '@/utils/next-compat';
+import { usePathname } from '@/utils/next-compat';
 import { toast } from 'sonner';
 
 const PortalLayout = ({ children }: { children?: React.ReactNode }) => {

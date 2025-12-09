@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { Link } from '@/utils/next-compat';
 import { Calendar, Clock, User, ArrowLeft, Share2, Facebook, Linkedin, Globe } from 'lucide-react';
 import { BlogPost as BlogPostType } from '@/types/blog';
 import { formatDate, generateTableOfContents } from '@/utils/blogUtils';

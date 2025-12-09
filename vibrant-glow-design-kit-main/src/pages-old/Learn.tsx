@@ -6,7 +6,7 @@ import { allLearnArticles, allLearnCategories } from '@/data/learnArticles';
 import { Button } from '@/components/ui/button';
 import { Search, Filter, BookOpen, Clock, User, Globe, MapPin } from 'lucide-react';
 import SEO from '@/components/SEO';
-import Link from 'next/link';
+import { Link } from '@/utils/next-compat';
 import { SafeHTML } from '@/utils/sanitize';
 
 // Individual article component

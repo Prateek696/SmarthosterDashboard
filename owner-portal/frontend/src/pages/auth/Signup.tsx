@@ -230,28 +230,28 @@ const Signup: React.FC = () => {
           <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/20 p-8 mb-6">
             <div className="space-y-6">
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0">
-                    <Shield className="h-6 w-6 text-blue-600 mt-0.5" />
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-semibold text-blue-900 mb-2">
-                      {t('auth.accountCreationByAdmin')}
-                    </h4>
-                    <p className="text-sm text-blue-700 mb-3">
-                      {t('auth.allAccountsCreatedByAdmin')}
-                    </p>
-                    <div className="bg-white border border-blue-200 rounded-lg p-3">
-                      <p className="text-sm text-blue-800 font-medium mb-1">{t('auth.toRequestAccount')}</p>
-                      <ul className="text-sm text-blue-700 space-y-1">
-                        <li>• {t('auth.contactSystemAdmin')}</li>
-                        <li>• {t('auth.provideEmailAndRole')}</li>
-                        <li>• {t('auth.adminWillCreateAccount')}</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                          <div className="flex items-start space-x-3">
+                            <div className="flex-shrink-0">
+                              <Shield className="h-6 w-6 text-blue-600 mt-0.5" />
+                            </div>
+                            <div>
+                              <h4 className="text-lg font-semibold text-blue-900 mb-2">
+                                {t('auth.accountCreationByAdmin')}
+                              </h4>
+                              <p className="text-sm text-blue-700 mb-3">
+                                {t('auth.allAccountsCreatedByAdmin')}
+                              </p>
+                              <div className="bg-white border border-blue-200 rounded-lg p-3">
+                                <p className="text-sm text-blue-800 font-medium mb-1">{t('auth.toRequestAccount')}</p>
+                                <ul className="text-sm text-blue-700 space-y-1">
+                                  <li>• {t('auth.contactSystemAdmin')}</li>
+                                  <li>• {t('auth.provideEmailAndRole')}</li>
+                                  <li>• {t('auth.adminWillCreateAccount')}</li>
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
             </div>
           </div>
 

@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname, useSearchParams, useRouter } from 'next/navigation';
+import { Link } from '@/utils/next-compat';
+import { usePathname, useSearchParams, useRouter } from '@/utils/next-compat';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const Auth = () => {

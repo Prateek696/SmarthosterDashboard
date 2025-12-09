@@ -14,6 +14,7 @@
  * Note: Blogs are Collection Type, so each post is created/updated individually
  */
 
+import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -466,4 +467,5 @@ loadBlogData()
     console.error('💥 Import failed:', error);
     process.exit(1);
   });
+
 

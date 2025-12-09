@@ -5,7 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import Testimonials from "@/components/Testimonials";
 import Layout from "@/components/Layout";
 import CalendlyButton from "@/components/CalendlyButton";
-import Link from "next/link";
+import { Link } from '@/utils/next-compat';
 
 // Import team photos
 import miguelPhoto from "@/assets/team/miguel-ribeiro.jpg";

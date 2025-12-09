@@ -2,7 +2,7 @@
 import { Shield, Database, Lock, TrendingUp, CheckCircle, Globe, FileCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import Link from "next/link";
+import { Link } from '@/utils/next-compat';
 import { extractComponent, getStrapiText, formatStrapiArray } from "@/utils/strapi-helpers";
 
 interface IntegrationsProps {

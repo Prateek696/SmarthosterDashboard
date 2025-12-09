@@ -14,7 +14,7 @@ import { Search, Filter } from 'lucide-react';
 import { strapiApi } from '@/services/strapi.api';
 import { supabase } from '@/integrations/supabase/client';
 import { analytics, useScrollDepthTracking } from '@/utils/analytics';
-import { usePathname } from 'next/navigation';
+import { usePathname } from '@/utils/next-compat';
 import { getStrapiImageUrl } from '@/utils/strapi-helpers';
 
 // Helper function to transform Strapi post data to blog post format

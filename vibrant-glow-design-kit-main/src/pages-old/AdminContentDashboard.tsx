@@ -25,7 +25,7 @@ import {
   Languages
 } from 'lucide-react';
 import Layout from '@/components/Layout';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/utils/next-compat';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import AdminAnalyticsTab from '@/components/AdminAnalyticsTab';
 import AdminAuthorsTab from '@/components/AdminAuthorsTab';
