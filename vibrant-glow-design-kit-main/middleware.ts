@@ -36,7 +36,8 @@ export function middleware(request: NextRequest) {
 
   // Handle /portal routes - redirect to Owner Portal app (keep existing logic)
   if (pathname.startsWith('/portal')) {
-    const ownerPortalUrl = process.env.NEXT_PUBLIC_OWNER_PORTAL_URL || 'http://localhost:3000';
+    // Support both Vite (VITE_*) and Next.js (NEXT_PUBLIC_*) environment variables
+    const ownerPortalUrl = process.env.VITE_OWNER_PORTAL_URL || process.env.NEXT_PUBLIC_OWNER_PORTAL_URL || 'http://localhost:3000';
     
     // Extract the path after /portal
     let portalPath = pathname.replace(/^\/portal/, '');
