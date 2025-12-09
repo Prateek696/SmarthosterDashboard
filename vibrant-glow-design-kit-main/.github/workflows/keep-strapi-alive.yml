@@ -1,0 +1,48 @@
+name: Keep Strapi Alive
+
+on:
+  # Run every 10 minutes to prevent Render free tier from spinning down
+  schedule:
+    - cron: '*/10 * * * *'  # Every 10 minutes
+  # Also allow manual trigger
+  workflow_dispatch:
+  # Run on push to staging branch (optional - to test the workflow)
+  push:
+    branches:
+      - staging
+
+jobs:
+  ping-strapi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Ping Strapi Staging Instance
+        env:
+          NEXT_PUBLIC_STRAPI_URL: ${{ secrets.STRAPI_STAGING_URL || 'https://smarthoster-blogs-1.onrender.com' }}
+        run: |
+          echo "🚀 Pinging Strapi staging instance..."
+          curl -f -s -o /dev/null -w "Status: %{http_code}\n" "${NEXT_PUBLIC_STRAPI_URL}/api" || echo "⚠️  Strapi might be spinning up..."
+          echo "✅ Ping completed at $(date)"
+      
+      - name: Ping Strapi Production Instance (if configured)
+        if: ${{ secrets.STRAPI_PRODUCTION_URL != '' }}
+        env:
+          STRAPI_URL: ${{ secrets.STRAPI_PRODUCTION_URL }}
+        run: |
+          echo "🚀 Pinging Strapi production instance..."
+          curl -f -s -o /dev/null -w "Status: %{http_code}\n" "${STRAPI_URL}/api" || echo "⚠️  Strapi might be spinning up..."
+          echo "✅ Ping completed at $(date)"
+

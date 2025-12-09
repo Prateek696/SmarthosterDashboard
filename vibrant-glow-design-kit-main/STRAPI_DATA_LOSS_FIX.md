@@ -17,9 +17,28 @@ Your Strapi instance on Render (free tier) is experiencing:
 
 ## ✅ Solutions
 
-### Solution 1: Keep Strapi Alive (Quick Fix)
+### Solution 1: GitHub Actions Workflow (Automatic - Recommended)
 
-Run this script to ping Strapi every 10 minutes and prevent it from spinning down:
+**This is the best solution!** GitHub Actions will automatically ping Strapi every 10 minutes.
+
+**Setup:**
+1. The workflow file is already created: `.github/workflows/keep-strapi-alive.yml`
+2. **Add GitHub Secret** (optional, if you want to customize):
+   - Go to your GitHub repo → Settings → Secrets and variables → Actions
+   - Add secret: `STRAPI_STAGING_URL` = `https://smarthoster-blogs-1.onrender.com`
+   - (Optional) Add: `STRAPI_PRODUCTION_URL` = your production Strapi URL
+3. **Push to staging branch** - the workflow will start automatically
+4. **Check workflow runs**: Go to Actions tab in GitHub to see it running
+
+**Benefits:**
+- ✅ Runs automatically every 10 minutes
+- ✅ No need to keep terminal open
+- ✅ Works 24/7
+- ✅ Free (GitHub Actions free tier: 2000 minutes/month)
+
+### Solution 1b: Manual Keep-Alive Script (Local)
+
+If you prefer to run it locally:
 
 ```bash
 npm run keep-strapi-alive
