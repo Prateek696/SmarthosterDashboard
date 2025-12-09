@@ -7,11 +7,55 @@ import {
 } from "@/components/ui/accordion";
 import { Clock, DollarSign, FileCheck, Phone, Home, Sparkles, Calendar, CreditCard, FileText, Users } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { extractComponent, getStrapiText, formatStrapiArray } from "@/utils/strapi-helpers";
 
-const FAQ = () => {
+interface FAQProps {
+  strapiData?: any; // Optional Strapi homepage data
+}
+
+const FAQ = ({ strapiData }: FAQProps = {}) => {
   const { t } = useLanguage();
-
-  const faqs = [
+  
+  // Extract FAQ section from Strapi data
+  let faqSection = null;
+  if (strapiData) {
+    if (strapiData.faqSection) {
+      faqSection = strapiData.faqSection;
+    }
+    if (!faqSection) {
+      faqSection = extractComponent(strapiData, 'faqSection');
+    }
+    if (!faqSection && strapiData.attributes?.faqSection) {
+      faqSection = strapiData.attributes.faqSection;
+    }
+  }
+  
+  // Helper function
+  const getValue = (strapiPath: string, translationPath: string, defaultValue: string): string => {
+    if (faqSection) {
+      const value = getStrapiText(faqSection[strapiPath]);
+      if (value) return value;
+    }
+    const translationValue = translationPath.split('.').reduce((obj: any, key: string) => obj?.[key], t);
+    return translationValue || defaultValue;
+  };
+  
+  const title = getValue('title', 'faq.title', 'Frequently Asked Questions');
+  const description = getValue('description', 'faq.description', 'Get answers to the most common questions');
+  
+  // Get FAQs from Strapi or fallback
+  const strapiFaqs = formatStrapiArray(faqSection?.faqs || []);
+  const iconMap: Record<string, any> = {
+    'Clock': Clock, 'DollarSign': DollarSign, 'FileCheck': FileCheck, 'Phone': Phone,
+    'Home': Home, 'Sparkles': Sparkles, 'Calendar': Calendar, 'CreditCard': CreditCard,
+    'FileText': FileText, 'Users': Users
+  };
+  
+  const faqs = strapiFaqs.length > 0 ? strapiFaqs.map((faq: any) => ({
+    icon: iconMap[faq.icon] || Clock,
+    question: getStrapiText(faq.question) || '',
+    answer: getStrapiText(faq.answer) || ''
+  })) : [
     {
       icon: Clock,
       question: t.faq.questions.setup.question,
@@ -74,10 +118,10 @@ const FAQ = () => {
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <div className="text-center mb-8 sm:mb-12 lg:mb-16 animate-fade-in">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 mb-3 sm:mb-4 lg:mb-6 tracking-tight leading-tight">
-            {t.faq.title}
+            {title}
           </h2>
           <p className="text-base sm:text-lg lg:text-xl xl:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed font-light px-4 sm:px-0">
-            {t.faq.description}
+            {description}
           </p>
         </div>
         

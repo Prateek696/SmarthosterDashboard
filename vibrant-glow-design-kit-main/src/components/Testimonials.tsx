@@ -9,11 +9,53 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { extractComponent, getStrapiText, getStrapiImageUrl, formatStrapiArray } from "@/utils/strapi-helpers";
 
-const Testimonials = () => {
+interface TestimonialsProps {
+  strapiData?: any; // Optional Strapi homepage data
+}
+
+const Testimonials = ({ strapiData }: TestimonialsProps = {}) => {
   const { t } = useLanguage();
   
-  const testimonials = [
+  // Extract Testimonials section from Strapi data
+  let testimonialsSection = null;
+  if (strapiData) {
+    if (strapiData.testimonialsSection) {
+      testimonialsSection = strapiData.testimonialsSection;
+    }
+    if (!testimonialsSection) {
+      testimonialsSection = extractComponent(strapiData, 'testimonialsSection');
+    }
+    if (!testimonialsSection && strapiData.attributes?.testimonialsSection) {
+      testimonialsSection = strapiData.attributes.testimonialsSection;
+    }
+  }
+  
+  // Helper function to get value with fallback
+  const getValue = (strapiPath: string, translationPath: string, defaultValue: string): string => {
+    if (testimonialsSection) {
+      const value = getStrapiText(testimonialsSection[strapiPath]);
+      if (value) return value;
+    }
+    const translationValue = translationPath.split('.').reduce((obj: any, key: string) => obj?.[key], t);
+    return translationValue || defaultValue;
+  };
+  
+  // Get title and description
+  const title = getValue('title', 'testimonials.title', 'Client Testimonials');
+  const description = getValue('description', 'testimonials.description', 'Hear from property owners across Portugal');
+  
+  // Get testimonials from Strapi or fallback
+  const strapiTestimonials = formatStrapiArray(testimonialsSection?.testimonials || []);
+  const testimonials = strapiTestimonials.length > 0 ? strapiTestimonials.map((test: any) => ({
+    name: getStrapiText(test.name) || '',
+    role: getStrapiText(test.role) || '',
+    location: getStrapiText(test.location) || '',
+    image: getStrapiImageUrl(test.image) || '',
+    rating: test.rating || 5,
+    quote: getStrapiText(test.quote) || ''
+  })) : [
     {
       name: "Luis M.",
       role: t?.testimonials?.roles?.villaOwner || "Villa Owner",
@@ -73,10 +115,10 @@ const Testimonials = () => {
       <div className="container mx-auto px-4 sm:px-6">
         <div className="text-center mb-12 lg:mb-16 animate-fade-in">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 mb-4 lg:mb-6 tracking-tight">
-            {t.testimonials.title}
+            {title}
           </h2>
           <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed font-light">
-            {t.testimonials.description}
+            {description}
           </p>
         </div>
         

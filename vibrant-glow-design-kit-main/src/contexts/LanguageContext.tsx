@@ -1,3 +1,4 @@
+'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
@@ -192,43 +193,61 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 // Function to detect browser language and return supported language
 const detectBrowserLanguage = (): Language => {
+  // Only access navigator on client side
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+    return 'en';
+  }
+  
   const browserLang = navigator.language || navigator.languages?.[0] || 'en';
   const langCode = browserLang.split('-')[0].toLowerCase();
   
   // Map browser language to supported languages
+  // Default is now Portuguese (pt) instead of English (en)
   switch (langCode) {
     case 'pt':
       return 'pt';
     case 'fr':
       return 'fr';
     case 'en':
-    default:
       return 'en';
+    default:
+      return 'pt'; // Portuguese is now the default
   }
 };
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Get language from localStorage or default to English
-  const savedLanguage = (localStorage.getItem('language') as Language) || 'en';
-  const [currentLanguage, setCurrentLanguage] = useState<Language>(savedLanguage);
+  // Initialize with default language for SSR compatibility
+  // Will be updated in useEffect on client side
+  // Default is now Portuguese (pt) instead of English (en)
+  const [currentLanguage, setCurrentLanguage] = useState<Language>('pt');
 
-  // Detect browser language on mount if no saved language
+  // Detect browser language and load from localStorage on client side
   useEffect(() => {
-    if (!localStorage.getItem('language')) {
-      const detectedLanguage = detectBrowserLanguage();
-      setCurrentLanguage(detectedLanguage);
-      localStorage.setItem('language', detectedLanguage);
+    // Check if localStorage is available (client side only)
+    if (typeof window !== 'undefined') {
+      const savedLanguage = localStorage.getItem('language') as Language;
+      
+      if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'fr' || savedLanguage === 'pt')) {
+        setCurrentLanguage(savedLanguage);
+      } else {
+        // No saved language, detect from browser
+        const detectedLanguage = detectBrowserLanguage();
+        setCurrentLanguage(detectedLanguage);
+        localStorage.setItem('language', detectedLanguage);
+      }
     }
   }, []);
 
   const setLanguage = (language: Language) => {
     setCurrentLanguage(language);
-    localStorage.setItem('language', language);
     
-    // Trigger blog content translation when language changes
-    // Use setTimeout to ensure DOM is updated
-    setTimeout(() => {
-      if (typeof window !== 'undefined') {
+    // Only access localStorage on client side
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('language', language);
+      
+      // Trigger blog content translation when language changes
+      // Use setTimeout to ensure DOM is updated
+      setTimeout(() => {
         // Dynamically import to avoid SSR issues
         import('../utils/translateBlog').then(({ translateBlogContent }) => {
           console.log('🔄 Language changed to:', language, '- Translating blog content...');
@@ -238,8 +257,8 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
         }).catch((error) => {
           console.error('❌ Translation utility failed to load:', error);
         });
-      }
-    }, 300);
+      }, 300);
+    }
   };
 
   const t = translations[currentLanguage];

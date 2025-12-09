@@ -1,11 +1,14 @@
+'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import CalendlyButton from "@/components/CalendlyButton";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Settings } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+// Using anchor tags instead of React Router Link for Next.js compatibility
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { getLocaleFromPathname, addLocalePrefix, removeLocalePrefix } from "@/utils/locale-helpers";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -17,37 +20,52 @@ import {
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const location = useLocation();
+  const [mounted, setMounted] = useState(false);
   const { t, currentLanguage, setLanguage } = useLanguage();
   const { user, isAdmin, profile } = useAuth();
+  
+  // Get pathname from Next.js hook - only use after mount to prevent hydration mismatch
+  const pathname = usePathname();
+  
+  useEffect(() => {
+    // Mark as mounted on client side only
+    setMounted(true);
+  }, []);
+  
+  // Use empty pathname during SSR to ensure consistent className on first render
+  const safePathname = mounted ? (pathname || '/') : '/';
+  
+  // Get current locale from pathname
+  const currentLocale = mounted ? getLocaleFromPathname(safePathname) : 'pt';
 
   const servicesItems = [
-    { name: t.header?.services?.enhancedDirectBookings || "Enhanced Direct Bookings", href: "/enhanced-direct-bookings" },
-    { name: t.header?.services?.fullServiceManagement || "Full-Service Management", href: "/full-service-management" },
-    { name: t.header?.services?.advancedAutomation || "Advanced Automation & Smart Tech", href: "/advanced-automation" },
-    { name: t.header?.services?.localExpertise || "Local Expertise", href: "/local-expertise" },
-    { name: t.header?.services?.incomeStrategy || "Income Strategy", href: "/income-strategy" },
-    { name: t.header?.services?.legalCompliance || "Legal Compliance & SEF/AIMA Reporting", href: "/legal-compliance" },
-    { name: t.header?.services?.automatedBilling || "Automated Billing & Legal Reporting", href: "/automated-billing" },
-    { name: t.header?.services?.greenPledge || "Green Pledge", href: "/green-pledge" },
+    { name: t.header?.services?.enhancedDirectBookings || "Enhanced Direct Bookings", href: addLocalePrefix("/enhanced-direct-bookings", currentLocale) },
+    { name: t.header?.services?.fullServiceManagement || "Full-Service Management", href: addLocalePrefix("/full-service-management", currentLocale) },
+    { name: t.header?.services?.advancedAutomation || "Advanced Automation & Smart Tech", href: addLocalePrefix("/advanced-automation", currentLocale) },
+    { name: t.header?.services?.localExpertise || "Local Expertise", href: addLocalePrefix("/local-expertise", currentLocale) },
+    { name: t.header?.services?.incomeStrategy || "Income Strategy", href: addLocalePrefix("/income-strategy", currentLocale) },
+    { name: t.header?.services?.legalCompliance || "Legal Compliance & SEF/AIMA Reporting", href: addLocalePrefix("/legal-compliance", currentLocale) },
+    { name: t.header?.services?.automatedBilling || "Automated Billing & Legal Reporting", href: addLocalePrefix("/automated-billing", currentLocale) },
+    { name: t.header?.services?.greenPledge || "Green Pledge", href: addLocalePrefix("/green-pledge", currentLocale) },
   ];
 
   const mainNavItems = [
-    { name: t.header?.nav?.home || "Home", href: "/" },
-    { name: t.header?.nav?.about || "About Us", href: "/about" },
-    { name: t.header?.nav?.pricing || "Pricing", href: "/pricing" },
-    { name: t.header?.nav?.blog || "Blog", href: "/blog" },
+    { name: t.header?.nav?.home || "Home", href: addLocalePrefix("/", currentLocale) },
+    { name: t.header?.nav?.about || "About Us", href: addLocalePrefix("/about", currentLocale) },
+    { name: t.header?.nav?.pricing || "Pricing", href: addLocalePrefix("/pricing", currentLocale) },
+    { name: t.header?.nav?.blog || "Blog", href: addLocalePrefix("/blog", currentLocale) },
   ];
   
-  // Debug what we're actually getting
-  console.log('Header Debug - user:', !!user, 'isAdmin:', isAdmin, 'profile:', profile);
-  console.log('Main nav items:', mainNavItems.map(item => `${item.name}: ${item.href}`));
-  console.log('Translation for blog:', t.header?.nav?.blog);
   const isActiveLink = (href: string) => {
-    if (href === "/") {
-      return location.pathname === "/";
+    if (!mounted) return false; // No active states during SSR to prevent hydration mismatch
+    // Remove locale prefix for comparison
+    const pathWithoutLocale = removeLocalePrefix(safePathname);
+    const hrefWithoutLocale = removeLocalePrefix(href);
+    
+    if (hrefWithoutLocale === "/" || href === addLocalePrefix("/", currentLocale)) {
+      return pathWithoutLocale === "/" || safePathname === `/${currentLocale}` || safePathname === `/${currentLocale}/`;
     }
-    return location.pathname.startsWith(href);
+    return pathWithoutLocale.startsWith(hrefWithoutLocale);
   };
 
   const isServicesActive = () => {
@@ -55,7 +73,8 @@ const Header = () => {
   };
 
   const scrollToSection = (sectionId: string) => {
-    if (location.pathname !== "/") {
+    if (typeof window === 'undefined') return;
+    if (safePathname !== "/") {
       window.location.href = `/#${sectionId}`;
     } else {
       const element = document.getElementById(sectionId);
@@ -70,7 +89,7 @@ const Header = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-none">
         <div className="flex items-center justify-between h-16 sm:h-20 w-full">
           {/* Logo */}
-          <Link to="/" className="flex items-center flex-shrink-0">
+          <a href={addLocalePrefix("/", currentLocale)} className="flex items-center flex-shrink-0">
             <svg
               width="28"
               height="24"
@@ -91,15 +110,15 @@ const Header = () => {
               <span className="text-[#5FFF56]">Hoster</span>
               <span className="text-[#00CFFF]">.io</span>
             </span>
-          </Link>
+          </a>
 
           {/* Desktop Navigation */}
           <NavigationMenu className="hidden lg:flex overflow-visible">
             <NavigationMenuList className="space-x-1 flex-nowrap">
               {mainNavItems.map((item) => (
                 <NavigationMenuItem key={item.name}>
-                  <Link
-                    to={item.href}
+                  <a
+                    href={item.href}
                     className={`px-4 py-2 text-sm font-medium transition-colors duration-200 rounded-md ${
                       isActiveLink(item.href)
                         ? "text-[#5FFF56] font-semibold bg-gray-50"
@@ -107,14 +126,14 @@ const Header = () => {
                     }`}
                   >
                     {item.name}
-                  </Link>
+                  </a>
                 </NavigationMenuItem>
               ))}
               
               <NavigationMenuItem key="services">
-              <NavigationMenuTrigger 
+                  <NavigationMenuTrigger 
                 className={`text-sm font-medium px-4 py-2 ${
-                  isServicesActive()
+                  mounted && isServicesActive()
                     ? "text-[#5FFF56] font-semibold"
                     : "text-gray-700 hover:text-[#5FFF56]"
                 }`}
@@ -125,8 +144,8 @@ const Header = () => {
                   <div className="grid gap-2 p-6 w-96 bg-white border border-gray-200 shadow-lg rounded-lg z-50">
                     {servicesItems.map((item) => (
                       <NavigationMenuLink key={item.name} asChild>
-                        <Link
-                          to={item.href}
+                        <a
+                          href={item.href}
                           className={`block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-gray-50 hover:text-gray-900 focus:bg-gray-50 focus:text-gray-900 ${
                             isActiveLink(item.href)
                               ? "bg-gray-50 text-gray-900 font-medium"
@@ -136,7 +155,7 @@ const Header = () => {
                           <div className="text-sm font-medium leading-none">
                             {item.name}
                           </div>
-                        </Link>
+                        </a>
                       </NavigationMenuLink>
                     ))}
                   </div>
@@ -148,7 +167,7 @@ const Header = () => {
                 <NavigationMenuItem key="admin">
                   <NavigationMenuTrigger 
                     className={`text-sm font-medium transition-colors duration-200 px-4 py-2 ${
-                      location.pathname.startsWith('/admin')
+                      mounted && safePathname.startsWith('/admin')
                         ? "text-[#5FFF56] font-semibold"
                         : "text-gray-700 hover:text-[#5FFF56]"
                     }`}
@@ -159,8 +178,8 @@ const Header = () => {
                   <NavigationMenuContent>
                     <div className="w-80 p-4 bg-white border border-gray-200 shadow-xl rounded-lg z-50">
                       <NavigationMenuLink asChild>
-                        <Link
-                          to="/admin/content-dashboard"
+                        <a
+                          href="/admin/content-dashboard"
                           className={`block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-gray-50 hover:text-gray-900 focus:bg-gray-50 focus:text-gray-900 ${
                             isActiveLink('/admin/content-dashboard')
                               ? "bg-gray-50 text-gray-900 font-medium"
@@ -173,11 +192,11 @@ const Header = () => {
                           <div className="text-xs text-gray-500">
                             Manage generated content
                           </div>
-                        </Link>
+                        </a>
                       </NavigationMenuLink>
                       <NavigationMenuLink asChild>
-                        <Link
-                          to="/admin/content-generator"
+                        <a
+                          href="/admin/content-generator"
                           className={`block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-gray-50 hover:text-gray-900 focus:bg-gray-50 focus:text-gray-900 ${
                             isActiveLink('/admin/content-generator')
                               ? "bg-gray-50 text-gray-900 font-medium"
@@ -190,7 +209,7 @@ const Header = () => {
                           <div className="text-xs text-gray-500">
                             Generate AI content
                           </div>
-                        </Link>
+                        </a>
                       </NavigationMenuLink>
                     </div>
                   </NavigationMenuContent>
@@ -221,7 +240,7 @@ const Header = () => {
                   variant="ghost" 
                   className="text-gray-700 hover:text-gray-900 text-sm px-4 py-2"
                 >
-                  <a href={import.meta.env.VITE_OWNER_PORTAL_URL || "http://localhost:3000/auth/login"}>{t.header.cta.signIn}</a>
+                  <a href={process.env.NEXT_PUBLIC_OWNER_PORTAL_URL || "http://localhost:3000/auth/login"}>{t.header.cta.signIn}</a>
                 </Button>
                 <CalendlyButton
                   calendlyUrl="https://calendly.com/admin-smarthoster"
@@ -257,9 +276,9 @@ const Header = () => {
             <nav className="flex flex-col space-y-3">
 
               {mainNavItems.map((item) => (
-                <Link
+                <a
                   key={item.name}
-                  to={item.href}
+                  href={item.href}
                   onClick={() => setIsMenuOpen(false)}
                   className={`text-base font-medium transition-colors duration-200 py-2 ${
                     isActiveLink(item.href)
@@ -268,16 +287,16 @@ const Header = () => {
                   }`}
                 >
                   {item.name}
-                </Link>
+                </a>
               ))}
               
               <div className="border-l-2 border-gray-200 pl-4 mt-4">
                 <h3 className="text-sm font-semibold text-gray-900 mb-3">{t.header?.nav?.services || "Services"}</h3>
                 <div className="space-y-2">
                   {servicesItems.map((item) => (
-                    <Link
+                    <a
                       key={item.name}
-                      to={item.href}
+                      href={item.href}
                       onClick={() => setIsMenuOpen(false)}
                       className={`block text-sm font-medium py-2 transition-colors duration-200 ${
                         isActiveLink(item.href)
@@ -286,7 +305,7 @@ const Header = () => {
                       }`}
                     >
                       {item.name}
-                    </Link>
+                    </a>
                   ))}
                 </div>
               </div>
@@ -296,8 +315,8 @@ const Header = () => {
                 <div className="border-l-2 border-gray-200 pl-4 mt-4">
                   <h3 className="text-sm font-semibold text-gray-900 mb-3">Admin</h3>
                   <div className="space-y-2">
-                    <Link
-                      to="/admin/content-dashboard"
+                    <a
+                      href="/admin/content-dashboard"
                       onClick={() => setIsMenuOpen(false)}
                       className={`block text-sm font-medium py-2 transition-colors duration-200 ${
                         isActiveLink('/admin/content-dashboard')
@@ -306,9 +325,9 @@ const Header = () => {
                       }`}
                     >
                       Content Dashboard
-                    </Link>
-                    <Link
-                      to="/admin/content-generator"
+                    </a>
+                    <a
+                      href="/admin/content-generator"
                       onClick={() => setIsMenuOpen(false)}
                       className={`block text-sm font-medium py-2 transition-colors duration-200 ${
                         isActiveLink('/admin/content-generator')
@@ -317,7 +336,7 @@ const Header = () => {
                       }`}
                     >
                       Content Generator
-                    </Link>
+                    </a>
                   </div>
                 </div>
               )}
@@ -346,7 +365,7 @@ const Header = () => {
                       variant="ghost" 
                       className="text-gray-700 hover:text-gray-900 justify-start px-0 text-sm"
                     >
-                      <a href={import.meta.env.VITE_OWNER_PORTAL_URL || "http://localhost:3000/auth/login"} onClick={() => setIsMenuOpen(false)}>
+                      <a href={process.env.NEXT_PUBLIC_OWNER_PORTAL_URL || "http://localhost:3000/auth/login"} onClick={() => setIsMenuOpen(false)}>
                         {t.header.cta.signIn}
                       </a>
                     </Button>

@@ -5,7 +5,6 @@ import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import WhatsAppWidget from "@/components/WhatsAppWidget";
 import { ReactNode } from "react";
-import { useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { generatePageSEO } from "@/data/seoConfig";
 
@@ -24,8 +23,15 @@ interface LayoutProps {
 }
 
 const Layout = ({ children, customSEO }: LayoutProps) => {
-  const location = useLocation();
   const { currentLanguage } = useLanguage();
+  
+  // Get pathname from window if available (client-side), otherwise use default
+  const getPathname = () => {
+    if (typeof window === 'undefined') return '/';
+    return window.location.pathname;
+  };
+  
+  const pathname = getPathname();
   
   // Extract the base path without language prefix
   const getBasePath = (pathname: string) => {
@@ -38,13 +44,13 @@ const Layout = ({ children, customSEO }: LayoutProps) => {
     return pathname;
   };
   
-  const basePath = getBasePath(location.pathname);
+  const basePath = getBasePath(pathname);
   const seoData = generatePageSEO(basePath, currentLanguage);
   
   // Check if we should show WhatsApp widget (exclude auth pages and dashboard)
-  const shouldShowWhatsApp = !location.pathname.startsWith('/auth') && 
-                            !location.pathname.startsWith('/portal') &&
-                            !location.pathname.startsWith('/admin');
+  const shouldShowWhatsApp = !pathname.startsWith('/auth') && 
+                            !pathname.startsWith('/portal') &&
+                            !pathname.startsWith('/admin');
   
   // Merge custom SEO with default SEO
   const finalSEO = {

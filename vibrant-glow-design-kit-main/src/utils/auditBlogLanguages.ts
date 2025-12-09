@@ -26,6 +26,6 @@ export const runBlogLanguageAudit = () => {
 };
 
 // Auto-run audit if in development
-if (import.meta.env.DEV) {
+if (process.env.NODE_ENV === 'development') {
   setTimeout(() => runBlogLanguageAudit(), 1000);
 }

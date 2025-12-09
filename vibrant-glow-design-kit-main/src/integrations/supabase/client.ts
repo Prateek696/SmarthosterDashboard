@@ -2,10 +2,22 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://vbfvlcuqoinkafqknysp.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiZnZsY3Vxb2lua2FmcWtueXNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NjQ1MTEsImV4cCI6MjA2NDE0MDUxMX0.RMVra_nETrVKUHhF_GUrouzSaiRtZdlChFTTA79ijSw";
+// Allow environment variable override, fallback to hardcoded values
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://vbfvlcuqoinkafqknysp.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiZnZsY3Vxb2lua2FmcWtueXNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NjQ1MTEsImV4cCI6MjA2NDE0MDUxMX0.RMVra_nETrVKUHhF_GUrouzSaiRtZdlChFTTA79ijSw";
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+// Create client with error handling - returns null if configuration is invalid
+let supabaseClient: ReturnType<typeof createClient<Database>> | null = null;
+
+try {
+  if (SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY) {
+    supabaseClient = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  }
+} catch (error) {
+  console.warn('Failed to initialize Supabase client:', error);
+}
+
+export const supabase = supabaseClient!;

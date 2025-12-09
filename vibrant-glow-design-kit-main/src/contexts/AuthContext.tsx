@@ -109,7 +109,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+    // Only access window on client side
+    const redirectUrl = typeof window !== 'undefined' 
+      ? `${window.location.origin}/`
+      : 'https://www.smarthoster.io/';
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -133,6 +136,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const resetPassword = async (email: string) => {
     // Use the correct redirect URL based on environment
     const getRedirectUrl = () => {
+      // Only access window on client side
+      if (typeof window === 'undefined') {
+        return 'https://www.smarthoster.io/auth/reset';
+      }
+      
       // For localhost development, use localhost
       if (window.location.hostname === 'localhost') {
         return `${window.location.origin}/auth/reset`;

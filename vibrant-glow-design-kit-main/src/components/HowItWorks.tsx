@@ -2,11 +2,58 @@
 import { MessageSquare, Search, UserPlus, Rocket, Heart, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { extractComponent, getStrapiText, formatStrapiArray } from "@/utils/strapi-helpers";
 
-const HowItWorks = () => {
+interface HowItWorksProps {
+  strapiData?: any; // Optional Strapi homepage data
+}
+
+const HowItWorks = ({ strapiData }: HowItWorksProps = {}) => {
   const { t } = useLanguage();
-
-  const steps = [
+  
+  // Extract HowItWorks section from Strapi data
+  let howItWorksSection = null;
+  if (strapiData) {
+    if (strapiData.howItWorksSection) {
+      howItWorksSection = strapiData.howItWorksSection;
+    }
+    if (!howItWorksSection) {
+      howItWorksSection = extractComponent(strapiData, 'howItWorksSection');
+    }
+    if (!howItWorksSection && strapiData.attributes?.howItWorksSection) {
+      howItWorksSection = strapiData.attributes.howItWorksSection;
+    }
+  }
+  
+  // Helper function
+  const getValue = (strapiPath: string, translationPath: string, defaultValue: string): string => {
+    if (howItWorksSection) {
+      const value = getStrapiText(howItWorksSection[strapiPath]);
+      if (value) return value;
+    }
+    const translationValue = translationPath.split('.').reduce((obj: any, key: string) => obj?.[key], t);
+    return translationValue || defaultValue;
+  };
+  
+  const title = getValue('title', 'howItWorks.title', 'How It Works');
+  const description = getValue('description', 'howItWorks.description', 'Simple 5-step process');
+  
+  // Get steps from Strapi or fallback
+  const strapiSteps = formatStrapiArray(howItWorksSection?.steps || []);
+  const iconMap: Record<string, any> = {
+    'MessageSquare': MessageSquare,
+    'Search': Search,
+    'UserPlus': UserPlus,
+    'Rocket': Rocket,
+    'Heart': Heart
+  };
+  
+  const steps = strapiSteps.length > 0 ? strapiSteps.map((step: any) => ({
+    icon: iconMap[step.iconName] || MessageSquare,
+    title: getStrapiText(step.title) || '',
+    description: getStrapiText(step.description) || '',
+    color: step.color || '#5FFF56'
+  })) : [
     {
       icon: MessageSquare,
       title: t.howItWorks.steps.reachOut.title,
@@ -51,10 +98,10 @@ const HowItWorks = () => {
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <div className="text-center mb-12 lg:mb-16 animate-fade-in">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-4 lg:mb-6 tracking-tight">
-            {t.howItWorks.title}
+            {title}
           </h2>
           <p className="text-base sm:text-lg lg:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed font-light">
-            {t.howItWorks.description}
+            {description}
           </p>
         </div>
         

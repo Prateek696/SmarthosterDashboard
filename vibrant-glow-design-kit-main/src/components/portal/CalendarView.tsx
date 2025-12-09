@@ -5,7 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
-import { Navigate, Link } from 'react-router-dom';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 const Auth = () => {
   const { user, signIn, signUp, resetPassword } = useAuth();
@@ -20,9 +22,17 @@ const Auth = () => {
     lastName: '',
   });
 
+  const router = useRouter();
+
   // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      router.push('/portal');
+    }
+  }, [user, router]);
+
   if (user) {
-    return <Navigate to="/portal" replace />;
+    return null; // Will redirect via useEffect
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,7 +64,7 @@ const Auth = () => {
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
-            <Link to="/" className="flex items-center">
+            <Link href="/" className="flex items-center">
               <span className="text-xl font-bold">
                 <span className="text-gray-900">Smart</span>
                 <span className="text-[#5FFF56]">Hoster</span>
@@ -62,7 +72,7 @@ const Auth = () => {
               </span>
             </Link>
             <Button asChild variant="outline">
-              <Link to="/">Back to Home</Link>
+              <Link href="/">Back to Home</Link>
             </Button>
           </div>
         </div>

@@ -2,12 +2,63 @@
 import { Shield, Database, Lock, TrendingUp, CheckCircle, Globe, FileCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Link } from "react-router-dom";
+import Link from "next/link";
+import { extractComponent, getStrapiText, formatStrapiArray } from "@/utils/strapi-helpers";
 
-const Integrations = () => {
+interface IntegrationsProps {
+  strapiData?: any; // Optional Strapi homepage data
+}
+
+const Integrations = ({ strapiData }: IntegrationsProps = {}) => {
   const { t } = useLanguage();
   
-  const integrationStats = [
+  // Extract Integrations section from Strapi data
+  let integrationsSection = null;
+  if (strapiData) {
+    if (strapiData.integrationsSection) {
+      integrationsSection = strapiData.integrationsSection;
+    }
+    if (!integrationsSection) {
+      integrationsSection = extractComponent(strapiData, 'integrationsSection');
+    }
+    if (!integrationsSection && strapiData.attributes?.integrationsSection) {
+      integrationsSection = strapiData.attributes.integrationsSection;
+    }
+  }
+  
+  // Helper function to get value with fallback
+  const getValue = (strapiPath: string, translationPath: string, defaultValue: string): string => {
+    if (integrationsSection) {
+      const value = getStrapiText(integrationsSection[strapiPath]);
+      if (value) return value;
+    }
+    const translationValue = translationPath.split('.').reduce((obj: any, key: string) => obj?.[key], t);
+    return translationValue || defaultValue;
+  };
+  
+  // Get title and description
+  const title = getValue('title', 'integrations.title', 'Powerful Integrations');
+  const description = getValue('description', 'integrations.description', 'Connect with leading platforms');
+  const ctaTitle = getValue('ctaTitle', 'integrations.cta.title', 'Ready to Experience Seamless Integration?');
+  const ctaDescription = getValue('ctaDescription', 'integrations.cta.description', 'Discover how our integrations can transform');
+  const ctaButtonText = getValue('ctaButtonText', 'integrations.cta.button', 'View All Integrations');
+  const ctaButtonLink = integrationsSection?.ctaButtonLink || '/integrations';
+  const gdprText = getValue('gdprText', 'integrations.cta.gdpr', 'GDPR Compliant');
+  
+  // Get stats from Strapi or fallback
+  const strapiStats = formatStrapiArray(integrationsSection?.integrationStats || []);
+  const iconMap: Record<string, any> = {
+    'Globe': Globe,
+    'Shield': Shield,
+    'TrendingUp': TrendingUp
+  };
+  
+  const integrationStats = strapiStats.length > 0 ? strapiStats.map((stat: any) => ({
+    icon: iconMap[stat.iconName] || Globe,
+    number: getStrapiText(stat.number) || '',
+    label: getStrapiText(stat.label) || '',
+    description: getStrapiText(stat.description) || ''
+  })) : [
     {
       icon: Globe,
       number: "70+",
@@ -28,7 +79,19 @@ const Integrations = () => {
     }
   ];
 
-  const benefits = [
+  // Get benefits from Strapi or fallback
+  const strapiBenefits = formatStrapiArray(integrationsSection?.benefits || []);
+  const benefitIconMap: Record<string, any> = {
+    'Database': Database,
+    'FileCheck': FileCheck,
+    'Lock': Lock
+  };
+  
+  const benefits = strapiBenefits.length > 0 ? strapiBenefits.map((ben: any) => ({
+    icon: benefitIconMap[ben.iconName] || Database,
+    title: getStrapiText(ben.title) || '',
+    description: getStrapiText(ben.description) || ''
+  })) : [
     {
       icon: Database,
       title: t?.integrations?.benefits?.operations?.title || "Streamlined Operations",
@@ -56,10 +119,10 @@ const Integrations = () => {
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <div className="text-center mb-12 animate-fade-in">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4 tracking-tight">
-            {t?.integrations?.title || "Powerful Integrations"}
+            {title}
           </h2>
           <p className="text-sm sm:text-base lg:text-lg text-gray-600 max-w-4xl mx-auto leading-relaxed font-light">
-            {t?.integrations?.description || "Connect with leading platforms to enhance your property management experience"}
+            {description}
           </p>
         </div>
         
@@ -112,10 +175,10 @@ const Integrations = () => {
         <div className="text-center animate-fade-in">
           <div className="bg-gradient-to-r from-[#5FFF56]/10 to-[#00CFFF]/10 rounded-2xl p-6 lg:p-12 border border-gray-200/50 max-w-4xl mx-auto">
             <h3 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4">
-              {t?.integrations?.cta?.title || "Ready to Experience Seamless Integration?"}
+              {ctaTitle}
             </h3>
             <p className="text-sm lg:text-base text-gray-600 mb-6 max-w-2xl mx-auto">
-              {t?.integrations?.cta?.description || "Discover how our integrations can transform your property management workflow"}
+              {ctaDescription}
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
@@ -123,15 +186,15 @@ const Integrations = () => {
                 asChild
                 className="bg-[#00CFFF] hover:bg-[#00BFEF] text-white font-bold px-6 lg:px-8 py-3 h-12 text-sm lg:text-base rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
               >
-                <Link to="/integrations">
-                  {t?.integrations?.cta?.button || "View All Integrations"}
+                <Link href={ctaButtonLink}>
+                  {ctaButtonText}
                 </Link>
               </Button>
               
               {/* GDPR Badge */}
               <div className="inline-flex items-center px-4 py-3 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 shadow-sm">
                 <CheckCircle className="w-5 h-5 text-green-600 mr-3" />
-                <span className="text-sm font-semibold text-gray-800">{t?.integrations?.cta?.gdpr || "GDPR Compliant"}</span>
+                <span className="text-sm font-semibold text-gray-800">{gdprText}</span>
               </div>
             </div>
           </div>

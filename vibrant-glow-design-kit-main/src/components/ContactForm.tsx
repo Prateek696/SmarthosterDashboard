@@ -4,10 +4,69 @@ import { Button } from "@/components/ui/button";
 import { Mail, Phone, MapPin, Send, Shield, CheckCircle, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { extractComponent, getStrapiText } from "@/utils/strapi-helpers";
 
-const ContactForm = () => {
+interface ContactFormProps {
+  strapiData?: any; // Optional Strapi homepage data
+}
+
+const ContactForm = ({ strapiData }: ContactFormProps = {}) => {
   const { toast } = useToast();
   const { t } = useLanguage();
+  
+  // Extract Contact section from Strapi data
+  let contactSection = null;
+  if (strapiData) {
+    if (strapiData.contactSection) {
+      contactSection = strapiData.contactSection;
+    }
+    if (!contactSection) {
+      contactSection = extractComponent(strapiData, 'contactSection');
+    }
+    if (!contactSection && strapiData.attributes?.contactSection) {
+      contactSection = strapiData.attributes.contactSection;
+    }
+  }
+  
+  // Helper function
+  const getValue = (strapiPath: string, translationPath: string, defaultValue: string): string => {
+    if (contactSection) {
+      const value = getStrapiText(contactSection[strapiPath]);
+      if (value) return value;
+    }
+    const translationValue = translationPath.split('.').reduce((obj: any, key: string) => obj?.[key], t);
+    return translationValue || defaultValue;
+  };
+  
+  // Get all contact form labels and texts
+  const getInTouchTitle = getValue('getInTouchTitle', 'contact.getInTouch', 'Get In Touch');
+  const emailLabel = getValue('emailLabel', 'contact.email.label', 'Email');
+  const emailAddress = contactSection?.emailAddress || 'contact@smarthoster.io';
+  const phoneLabel = getValue('phoneLabel', 'contact.phone.label', 'Phone');
+  const phoneNumber = contactSection?.phoneNumber || '+351 933 683 981';
+  const sslText = getValue('sslText', 'contact.trust.ssl', 'Secure SSL Communication');
+  const gdprText = getValue('gdprText', 'contact.trust.gdpr', 'GDPR Compliant');
+  const fullNameLabel = getValue('fullNameLabel', 'contact.form.fullName.label', 'Full Name');
+  const fullNamePlaceholder = getValue('fullNamePlaceholder', 'contact.form.fullName.placeholder', 'Your full name');
+  const emailLabelForm = getValue('emailLabelForm', 'contact.form.email.label', 'Email Address');
+  const emailPlaceholder = getValue('emailPlaceholder', 'contact.form.email.placeholder', 'youremail@example.com');
+  const phoneLabelForm = getValue('phoneLabelForm', 'contact.form.phone.label', 'Phone Number');
+  const optionalText = getValue('optionalText', 'contact.form.optional', 'Optional');
+  const phonePlaceholder = getValue('phonePlaceholder', 'contact.form.phone.placeholder', '+351 XXX XXX XXX');
+  const messageLabel = getValue('messageLabel', 'contact.form.message.label', 'Message');
+  const messagePlaceholder = getValue('messagePlaceholder', 'contact.form.message.placeholder', 'Tell us about your property...');
+  const consentText = getValue('consentText', 'contact.form.consent.text', 'I consent to receive updates');
+  const privacyPolicyText = getValue('privacyPolicyText', 'contact.form.consent.privacy', 'Privacy Policy');
+  const submitButtonText = getValue('submitButtonText', 'contact.form.submit', 'Send Message');
+  const sendingText = getValue('sendingText', 'contact.form.sending', 'Sending...');
+  const validationTitle = getValue('validationTitle', 'contact.form.validation.title', 'Please fill in all required fields');
+  const validationDescription = getValue('validationDescription', 'contact.form.validation.description', 'Make sure to fill in your name, email, message, and accept the privacy policy.');
+  const errorTitle = getValue('errorTitle', 'contact.form.error.title', 'Error sending message');
+  const errorDescription = getValue('errorDescription', 'contact.form.error.description', 'Please try again or contact us directly.');
+  const successTitle = getValue('successTitle', 'contact.form.success.title', 'Message Sent Successfully!');
+  const successDescription = getValue('successDescription', 'contact.form.success.description', 'Thank you for contacting us. We\'ll get back to you within 24 hours.');
+  const successButtonText = getValue('successButtonText', 'contact.form.success.button', 'Close');
+  const emailSubject = getValue('emailSubject', 'contact.form.emailSubject', 'Contact Form Submission from SmartHoster.io');
   
   const [formData, setFormData] = useState({
     fullName: "",
@@ -24,8 +83,8 @@ const ContactForm = () => {
     
     if (!formData.fullName || !formData.email || !formData.message || !formData.consent) {
       toast({
-        title: t?.contact?.form?.validation?.title || "Please fill in all required fields",
-        description: t?.contact?.form?.validation?.description || "Make sure to fill in your name, email, message, and accept the privacy policy.",
+        title: validationTitle,
+        description: validationDescription,
         variant: "destructive",
       });
       return;
@@ -35,19 +94,19 @@ const ContactForm = () => {
 
     try {
       // Create mailto link for now - in production this would be an API call
-      const subject = encodeURIComponent(t?.contact?.form?.emailSubject || "Contact Form Submission from SmartHoster.io");
+      const subject = encodeURIComponent(emailSubject);
       const body = encodeURIComponent(`
 Name: ${formData.fullName}
 Email: ${formData.email}
-Phone: ${formData.phone || t?.contact?.form?.notProvided || 'Not provided'}
+Phone: ${formData.phone || 'Not provided'}
 
 Message:
 ${formData.message}
 
-Consent: ${t?.contact?.form?.consentConfirmation || 'User has agreed to receive communications.'}
+Consent: User has agreed to receive communications.
       `);
       
-      const mailtoLink = `mailto:contact@smarthoster.io?subject=${subject}&body=${body}`;
+      const mailtoLink = `mailto:${emailAddress}?subject=${subject}&body=${body}`;
       window.location.href = mailtoLink;
 
       // Show success modal
@@ -64,8 +123,8 @@ Consent: ${t?.contact?.form?.consentConfirmation || 'User has agreed to receive 
 
     } catch (error) {
       toast({
-        title: t?.contact?.form?.error?.title || "Error sending message",
-        description: t?.contact?.form?.error?.description || "Please try again or contact us directly.",
+        title: errorTitle,
+        description: errorDescription,
         variant: "destructive",
       });
     } finally {
@@ -88,15 +147,15 @@ Consent: ${t?.contact?.form?.consentConfirmation || 'User has agreed to receive 
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">{t?.contact?.form?.success?.title || "Message Sent Successfully!"}</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">{successTitle}</h3>
           <p className="text-gray-600 mb-6">
-            {t?.contact?.form?.success?.description || "Thank you for contacting us. We'll get back to you within 24 hours."}
+            {successDescription}
           </p>
           <Button 
             onClick={() => setShowSuccessModal(false)}
             className="bg-[#5FFF56] hover:bg-[#4FEF46] text-black font-semibold px-6 py-2 rounded-lg"
           >
-            {t?.contact?.form?.success?.button || "Close"}
+            {successButtonText}
           </Button>
         </div>
         <button
@@ -122,7 +181,7 @@ Consent: ${t?.contact?.form?.consentConfirmation || 'User has agreed to receive 
             {/* Contact Info */}
             <div className="animate-fade-in">
               <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 lg:mb-8">
-                {t?.contact?.getInTouch || "Get in Touch"}
+                {getInTouchTitle}
               </h3>
               
               <div className="space-y-6 mb-8 lg:mb-12">
@@ -131,8 +190,8 @@ Consent: ${t?.contact?.form?.consentConfirmation || 'User has agreed to receive 
                     <Mail className="h-5 w-5 lg:h-6 lg:w-6 text-[#00CFFF]" />
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900 text-lg">{t?.contact?.email?.label || "Email"}</div>
-                    <div className="text-gray-600">contact@smarthoster.io</div>
+                    <div className="font-semibold text-gray-900 text-lg">{emailLabel}</div>
+                    <div className="text-gray-600">{emailAddress}</div>
                   </div>
                 </div>
                 
@@ -141,8 +200,8 @@ Consent: ${t?.contact?.form?.consentConfirmation || 'User has agreed to receive 
                     <Phone className="h-5 w-5 lg:h-6 lg:w-6 text-[#5FFF56]" />
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900 text-lg">{t?.contact?.phone?.label || "Phone"}</div>
-                    <div className="text-gray-600">+351 933 683 981</div>
+                    <div className="font-semibold text-gray-900 text-lg">{phoneLabel}</div>
+                    <div className="text-gray-600">{phoneNumber}</div>
                   </div>
                 </div>
               </div>
@@ -151,11 +210,11 @@ Consent: ${t?.contact?.form?.consentConfirmation || 'User has agreed to receive 
               <div className="space-y-3">
                 <div className="flex items-center">
                   <Shield className="h-4 w-4 lg:h-5 lg:w-5 text-green-600 mr-3" />
-                  <span className="text-sm font-semibold text-gray-800">{t?.contact?.trust?.ssl || "SSL Secured Communication"}</span>
+                  <span className="text-sm font-semibold text-gray-800">{sslText}</span>
                 </div>
                 <div className="flex items-center">
                   <CheckCircle className="h-4 w-4 lg:h-5 lg:w-5 text-green-600 mr-3" />
-                  <span className="text-sm font-semibold text-gray-800">{t?.contact?.trust?.gdpr || "GDPR Compliant"}</span>
+                  <span className="text-sm font-semibold text-gray-800">{gdprText}</span>
                 </div>
               </div>
             </div>
@@ -166,7 +225,7 @@ Consent: ${t?.contact?.form?.consentConfirmation || 'User has agreed to receive 
                 <div className="space-y-6">
                   <div>
                     <label htmlFor="fullName" className="block text-sm font-semibold text-gray-900 mb-2">
-                      {t?.contact?.form?.fullName?.label || "Full Name"} *
+                      {fullNameLabel} *
                     </label>
                     <input
                       type="text"
@@ -176,13 +235,13 @@ Consent: ${t?.contact?.form?.consentConfirmation || 'User has agreed to receive 
                       onChange={handleChange}
                       required
                       className="w-full px-4 lg:px-6 py-3 lg:py-4 border-2 border-gray-200 rounded-xl focus:border-[#00CFFF] focus:outline-none transition-colors"
-                      placeholder={t?.contact?.form?.fullName?.placeholder || "Your full name"}
+                      placeholder={fullNamePlaceholder}
                     />
                   </div>
                   
                   <div>
                     <label htmlFor="email" className="block text-sm font-semibold text-gray-900 mb-2">
-                      {t?.contact?.form?.email?.label || "Email Address"} *
+                      {emailLabelForm} *
                     </label>
                     <input
                       type="email"
@@ -192,13 +251,13 @@ Consent: ${t?.contact?.form?.consentConfirmation || 'User has agreed to receive 
                       onChange={handleChange}
                       required
                       className="w-full px-4 lg:px-6 py-3 lg:py-4 border-2 border-gray-200 rounded-xl focus:border-[#00CFFF] focus:outline-none transition-colors"
-                      placeholder={t?.contact?.form?.email?.placeholder || "your@email.com"}
+                      placeholder={emailPlaceholder}
                     />
                   </div>
                   
                   <div>
                     <label htmlFor="phone" className="block text-sm font-semibold text-gray-900 mb-2">
-                      {t?.contact?.form?.phone?.label || "Phone Number"} ({t?.contact?.form?.optional || "Optional"})
+                      {phoneLabelForm} ({optionalText})
                     </label>
                     <input
                       type="tel"
@@ -207,13 +266,13 @@ Consent: ${t?.contact?.form?.consentConfirmation || 'User has agreed to receive 
                       value={formData.phone}
                       onChange={handleChange}
                       className="w-full px-4 lg:px-6 py-3 lg:py-4 border-2 border-gray-200 rounded-xl focus:border-[#00CFFF] focus:outline-none transition-colors"
-                      placeholder={t?.contact?.form?.phone?.placeholder || "+351 XXX XXX XXX"}
+                      placeholder={phonePlaceholder}
                     />
                   </div>
                   
                   <div>
                     <label htmlFor="message" className="block text-sm font-semibold text-gray-900 mb-2">
-                      {t?.contact?.form?.message?.label || "Message"} *
+                      {messageLabel} *
                     </label>
                     <textarea
                       id="message"
@@ -223,7 +282,7 @@ Consent: ${t?.contact?.form?.consentConfirmation || 'User has agreed to receive 
                       required
                       rows={4}
                       className="w-full px-4 lg:px-6 py-3 lg:py-4 border-2 border-gray-200 rounded-xl focus:border-[#00CFFF] focus:outline-none transition-colors resize-none"
-                      placeholder={t?.contact?.form?.message?.placeholder || "Tell us about your property and how we can help..."}
+                      placeholder={messagePlaceholder}
                     />
                   </div>
                   
@@ -238,10 +297,8 @@ Consent: ${t?.contact?.form?.consentConfirmation || 'User has agreed to receive 
                       className="mt-1 mr-3 h-4 w-4 lg:h-5 lg:w-5 text-[#00CFFF] border-2 border-gray-300 rounded focus:ring-[#00CFFF]"
                     />
                     <label htmlFor="consent" className="text-sm text-gray-700 leading-relaxed">
-                      {t?.contact?.form?.consent?.text || "I consent to receive updates and communications from"}{" "}
-                      <span className="font-semibold text-[#00CFFF]">SmartHoster.io</span>.{" "}
-                      {t?.contact?.form?.consent?.unsubscribe || "You can unsubscribe at any time. View our"}{" "}
-                      <a href="#" className="text-[#00CFFF] hover:underline font-semibold">{t?.contact?.form?.consent?.privacy || "Privacy Policy"}</a>. *
+                      {consentText}{" "}
+                      <a href="#" className="text-[#00CFFF] hover:underline font-semibold">{privacyPolicyText}</a>. *
                     </label>
                   </div>
                   
@@ -251,7 +308,7 @@ Consent: ${t?.contact?.form?.consentConfirmation || 'User has agreed to receive 
                     className="w-full bg-[#5FFF56] hover:bg-[#4FEF46] text-black font-bold py-4 lg:py-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     <Send className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
-                    {isSubmitting ? (t?.contact?.form?.sending || "Sending...") : (t?.contact?.form?.submit || "Send Message")}
+                    {isSubmitting ? sendingText : submitButtonText}
                   </Button>
                 </div>
               </form>

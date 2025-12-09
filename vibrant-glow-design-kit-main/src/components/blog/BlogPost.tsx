@@ -1,6 +1,7 @@
+'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { Calendar, Clock, User, ArrowLeft, Share2, Facebook, Linkedin, Globe } from 'lucide-react';
 import { BlogPost as BlogPostType } from '@/types/blog';
 import { formatDate, generateTableOfContents } from '@/utils/blogUtils';
@@ -62,8 +63,20 @@ const BlogPost = ({ post, relatedPosts }: BlogPostProps) => {
 
     return () => {
       // Cleanup hreflang tags on unmount
-      const hreflangTags = document.querySelectorAll('link[hreflang]');
-      hreflangTags.forEach(tag => tag.remove());
+      // Defensive check: only remove if still in DOM
+      try {
+        const hreflangTags = document.querySelectorAll('link[hreflang]');
+        hreflangTags.forEach(tag => {
+          if (tag.parentNode) {
+            tag.remove();
+          }
+        });
+      } catch (error) {
+        // Silently ignore cleanup errors during Fast Refresh
+        if (process.env.NODE_ENV === 'development') {
+          // This is a known React development mode issue - harmless
+        }
+      }
     };
   }, [post.content, post.slug, languageVariants]);
 
@@ -107,7 +120,7 @@ const BlogPost = ({ post, relatedPosts }: BlogPostProps) => {
       .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold">$1</strong>')
       .replace(/\*(.+?)\*/g, '<em class="italic">$1</em>')
       .replace(/^- (.+)$/gm, '<li class="mb-2">$1</li>')
-      .replace(/(<li.*<\/li>)/s, '<ul class="list-disc list-inside mb-4 space-y-2 ml-4">$1</ul>')
+      .replace(/(<li[\s\S]*?<\/li>)/g, '<ul class="list-disc list-inside mb-4 space-y-2 ml-4">$1</ul>')
       .replace(/^(\d+)\. (.+)$/gm, '<li class="mb-2">$2</li>')
       .replace(/\n\n/g, '</p><p class="mb-4">')
       .replace(/^(?!<[h|u|l])/gm, '<p class="mb-4">')
@@ -121,7 +134,7 @@ const BlogPost = ({ post, relatedPosts }: BlogPostProps) => {
         {/* Breadcrumb with structured data */}
         <nav className="mb-8" itemScope itemType="https://schema.org/BreadcrumbList">
           <Link 
-            to="/blog" 
+            href="/blog" 
             className="inline-flex items-center text-[#5FFF56] hover:text-[#4EE045] transition-colors"
             itemProp="itemListElement" 
             itemScope 
@@ -207,7 +220,7 @@ const BlogPost = ({ post, relatedPosts }: BlogPostProps) => {
                     return (
                       <Link
                         key={variant.language}
-                        to={variant.url}
+                        href={variant.url}
                         className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-md transition-colors"
                       >
                         <span>{flags[variant.language]}</span>
@@ -309,7 +322,7 @@ const BlogPost = ({ post, relatedPosts }: BlogPostProps) => {
                   {relatedPosts.slice(0, 2).map((relatedPost) => (
                     <Link
                       key={relatedPost.id}
-                      to={`/blog/${relatedPost.slug}`}
+                      href={`/blog/${relatedPost.slug}`}
                       className="group bg-white border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
                     >
                       <img

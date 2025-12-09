@@ -17,9 +17,46 @@ import {
 } from "@/components/ui/carousel";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
+import { extractComponent, getStrapiText, getStrapiImageUrl, formatStrapiArray } from "@/utils/strapi-helpers";
 
-const SuccessStories = () => {
+interface SuccessStoriesProps {
+  strapiData?: any; // Optional Strapi homepage data
+}
+
+const SuccessStories = ({ strapiData }: SuccessStoriesProps = {}) => {
   const { t } = useLanguage();
+  
+  // Extract SuccessStories section from Strapi data
+  let successStoriesSection = null;
+  if (strapiData) {
+    if (strapiData.successStoriesSection) {
+      successStoriesSection = strapiData.successStoriesSection;
+    }
+    if (!successStoriesSection) {
+      successStoriesSection = extractComponent(strapiData, 'successStoriesSection');
+    }
+    if (!successStoriesSection && strapiData.attributes?.successStoriesSection) {
+      successStoriesSection = strapiData.attributes.successStoriesSection;
+    }
+  }
+  
+  // Helper function
+  const getValue = (strapiPath: string, translationPath: string, defaultValue: string): string => {
+    if (successStoriesSection) {
+      const value = getStrapiText(successStoriesSection[strapiPath]);
+      if (value) return value;
+    }
+    const translationValue = translationPath.split('.').reduce((obj: any, key: string) => obj?.[key], t);
+    return translationValue || defaultValue;
+  };
+  
+  const title = getValue('title', 'successStories.title', 'Client Success Stories');
+  const description = getValue('description', 'successStories.description', 'Real results from real property owners');
+  const readFullStoryButtonText = getValue('readFullStoryButtonText', 'successStories.readFullStory', 'Read Full Story');
+  const propertyGalleryTitle = getValue('propertyGalleryTitle', 'successStories.propertyGallery', 'Property Gallery');
+  const successBadge = getValue('successBadge', 'successStories.successBadge', 'SUCCESS');
+  const caseStudy = getValue('caseStudy', 'successStories.caseStudy', 'Case Study');
+  
   const [joaoVillaImages] = useState<string[]>([
     "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
     "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
@@ -27,7 +64,30 @@ const SuccessStories = () => {
     "https://images.unsplash.com/photo-1571896349842-33c89424de2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
   ]);
   
-  const stories = t.successStories.stories.map((story, index) => ({
+  // Get stories from Strapi or fallback
+  const strapiStories = formatStrapiArray(successStoriesSection?.stories || []);
+  const iconMap: Record<string, any> = {
+    'TrendingUp': TrendingUp,
+    'Calendar': Calendar,
+    'Users': Users,
+    'Award': Award
+  };
+  
+  const stories = strapiStories.length > 0 ? strapiStories.map((story: any, index: number) => ({
+    name: getStrapiText(story.name) || '',
+    property: getStrapiText(story.property) || '',
+    location: getStrapiText(story.location) || '',
+    image: getStrapiImageUrl(story.image) || "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    ownerImage: getStrapiImageUrl(story.ownerImage) || "https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80",
+    story: getStrapiText(story.story) || '',
+    fullStory: getStrapiText(story.fullStory) || getStrapiText(story.story) || '',
+    results: formatStrapiArray(story.results || []).map((result: any, resultIndex: number) => ({
+      icon: iconMap[result.iconName] || [TrendingUp, Calendar, Users, Award][resultIndex],
+      label: getStrapiText(result.label) || '',
+      value: getStrapiText(result.value) || ''
+    })),
+    supportingImages: story.supportingImages ? formatStrapiArray(story.supportingImages).map((img: any) => getStrapiImageUrl(img)).filter(Boolean) : []
+  })) : t.successStories.stories.map((story, index) => ({
     ...story,
     image: index === 0 ? joaoVillaImages[0] : 
            index === 1 ? "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" :
@@ -61,10 +121,10 @@ const SuccessStories = () => {
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <div className="text-center mb-12 lg:mb-16 animate-fade-in">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 mb-4 lg:mb-6 tracking-tight">
-            {t.successStories.title}
+            {title}
           </h2>
           <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed font-light">
-            {t.successStories.description}
+            {description}
           </p>
         </div>
         
@@ -116,7 +176,7 @@ const SuccessStories = () => {
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button className="bg-[#5FFF56] hover:bg-[#4FEF46] text-black font-semibold px-6 py-2 text-sm rounded-xl transition-all duration-300 transform hover:scale-105">
-                            {t.successStories.readFullStory}
+                            {readFullStoryButtonText}
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -167,7 +227,7 @@ const SuccessStories = () => {
                             {/* Supporting images */}
                             {story.supportingImages && (
                               <div className="space-y-4">
-                                <h4 className="text-lg font-semibold text-gray-900">{t.successStories.propertyGallery}</h4>
+                                <h4 className="text-lg font-semibold text-gray-900">{propertyGalleryTitle}</h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   {story.supportingImages.map((img, imgIndex) => (
                                     <img 
@@ -187,14 +247,16 @@ const SuccessStories = () => {
                     
                     {/* Right - Property Image */}
                     <div className="relative">
-                      <img 
-                        src={story.image} 
-                        alt={story.property}
-                        className="w-full h-64 lg:h-80 object-cover rounded-2xl shadow-lg"
-                      />
+                      {story.image && (
+                        <img 
+                          src={story.image} 
+                          alt={story.property}
+                          className="w-full h-64 lg:h-80 object-cover rounded-2xl shadow-lg"
+                        />
+                      )}
                       <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-lg">
-                        <div className="text-lg font-bold text-[#5FFF56]">{t.successStories.successBadge}</div>
-                        <div className="text-xs text-gray-600">{t.successStories.caseStudy}</div>
+                        <div className="text-lg font-bold text-[#5FFF56]">{successBadge}</div>
+                        <div className="text-xs text-gray-600">{caseStudy}</div>
                       </div>
                     </div>
                   </div>

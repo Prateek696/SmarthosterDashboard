@@ -24,6 +24,7 @@ interface TranslationCache {
 
 // Get or create cache
 const getCache = (): TranslationCache => {
+  if (typeof window === 'undefined') return {};
   try {
     const cached = localStorage.getItem(TRANSLATION_CACHE_KEY);
     if (cached) {
@@ -37,6 +38,7 @@ const getCache = (): TranslationCache => {
 
 // Save cache
 const saveCache = (cache: TranslationCache): void => {
+  if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(TRANSLATION_CACHE_KEY, JSON.stringify(cache));
   } catch (e) {
@@ -106,7 +108,9 @@ const translateText = async (text: string, targetLang: string): Promise<string> 
         // Rate limited - set global flag and stop all future attempts
         isRateLimited = true;
         // Store in localStorage to persist across page reloads
-        localStorage.setItem('translation_rate_limited', 'true');
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('translation_rate_limited', 'true');
+        }
         console.warn('⚠️ Translation API rate limited (429). Free tier limit reached. Stopping all translation attempts.');
         // Don't cache rate limit errors - we want to retry later
         return text;
@@ -148,7 +152,9 @@ const translateText = async (text: string, targetLang: string): Promise<string> 
     } else if (data.responseStatus === 429) {
       // Rate limited - set global flag and stop all future attempts
       isRateLimited = true;
-      localStorage.setItem('translation_rate_limited', 'true');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('translation_rate_limited', 'true');
+      }
       console.warn('⚠️ Translation API rate limited (429). Stopping all translation attempts.');
       return text;
     } else {
@@ -280,6 +286,11 @@ export const translateHTMLContent = async (
     return htmlContent;
   }
 
+  // Only run on client side
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return htmlContent;
+  }
+
   // Create a temporary container to parse HTML
   const tempDiv = document.createElement('div');
   tempDiv.innerHTML = htmlContent;
@@ -335,6 +346,7 @@ export const translateTextContent = async (
  * Clear translation cache
  */
 export const clearTranslationCache = (): void => {
+  if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem(TRANSLATION_CACHE_KEY);
     console.log('✅ Translation cache cleared');

@@ -37,7 +37,7 @@ const hideLoading = (container: HTMLElement): void => {
  * @param targetLanguage - Language code (en, pt, fr)
  */
 export const translateBlogContent = async (targetLanguage: string): Promise<void> => {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
   const targetLang = languageMap[targetLanguage] || 'en';
   
@@ -83,7 +83,7 @@ export const translateBlogContent = async (targetLanguage: string): Promise<void
     
     for (const container of Array.from(blogContainers)) {
       // Check rate limit flag before each container
-      if (localStorage.getItem('translation_rate_limited') === 'true') {
+      if (typeof window !== 'undefined' && localStorage.getItem('translation_rate_limited') === 'true') {
         console.warn('⚠️ Rate limit detected. Stopping translation.');
         break;
       }
@@ -95,7 +95,7 @@ export const translateBlogContent = async (targetLanguage: string): Promise<void
         firstContainerDone = true;
         // Wait a moment and check if rate limit was set
         await new Promise(resolve => setTimeout(resolve, 300));
-        if (localStorage.getItem('translation_rate_limited') === 'true') {
+        if (typeof window !== 'undefined' && localStorage.getItem('translation_rate_limited') === 'true') {
           console.warn('⚠️ Rate limit detected after first container. Stopping all translation.');
           break; // Stop processing remaining containers
         }
@@ -156,6 +156,8 @@ const translateContainer = async (container: HTMLElement, targetLang: string): P
  * Reset translation - show original content
  */
 export const resetBlogTranslation = (): void => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  
   console.log('🔄 Resetting to original content');
   currentTranslationLang = 'en';
   

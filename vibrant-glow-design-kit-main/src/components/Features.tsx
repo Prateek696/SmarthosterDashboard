@@ -9,12 +9,67 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Link } from "react-router-dom";
+import Link from "next/link";
+import { extractComponent, getStrapiText, formatStrapiArray } from "@/utils/strapi-helpers";
 
-const Features = () => {
+interface FeaturesProps {
+  strapiData?: any; // Optional Strapi homepage data
+}
+
+const Features = ({ strapiData }: FeaturesProps = {}) => {
   const { t } = useLanguage();
-
-  const features = [
+  
+  // Extract Features section from Strapi data
+  let featuresSection = null;
+  if (strapiData) {
+    if (strapiData.featuresSection) {
+      featuresSection = strapiData.featuresSection;
+    }
+    if (!featuresSection) {
+      featuresSection = extractComponent(strapiData, 'featuresSection');
+    }
+    if (!featuresSection && strapiData.attributes?.featuresSection) {
+      featuresSection = strapiData.attributes.featuresSection;
+    }
+  }
+  
+  // Helper function to get value with fallback
+  const getValue = (strapiPath: string, translationPath: string, defaultValue: string): string => {
+    if (featuresSection) {
+      const value = getStrapiText(featuresSection[strapiPath]);
+      if (value) return value;
+    }
+    const translationValue = translationPath.split('.').reduce((obj: any, key: string) => obj?.[key], t);
+    return translationValue || defaultValue;
+  };
+  
+  // Get title, subtitle, description, learnMore
+  const title = getValue('title', 'features.title', 'Premium Features for');
+  const subtitle = getValue('subtitle', 'features.subtitle', 'Maximum Success');
+  const description = getValue('description', 'features.description', 'Every feature designed with one goal');
+  const learnMore = getValue('learnMore', 'features.learnMore', 'Learn More');
+  
+  // Get features from Strapi or fallback
+  const strapiFeatures = formatStrapiArray(featuresSection?.features || []);
+  const iconMap: Record<string, any> = {
+    'DollarSign': DollarSign,
+    'Home': Home,
+    'FileCheck': FileCheck,
+    'Zap': Zap,
+    'CreditCard': CreditCard,
+    'MousePointer': MousePointer,
+    'User': User,
+    'MapPin': MapPin,
+    'Leaf': Leaf
+  };
+  
+  const features = strapiFeatures.length > 0 ? strapiFeatures.map((feat: any) => ({
+    icon: iconMap[feat.iconName] || Home,
+    title: getStrapiText(feat.title) || '',
+    description: getStrapiText(feat.description) || '',
+    color: feat.color || '#5FFF56',
+    route: feat.route || '/learn-more'
+  })) : [
     {
       icon: DollarSign,
       title: t.features.list.maxIncome.title,
@@ -87,13 +142,13 @@ const Features = () => {
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <div className="text-center mb-12 animate-fade-in">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4 tracking-tight">
-            {t.features.title}
+            {title}
             <span className="block text-transparent bg-gradient-to-r from-[#5FFF56] to-[#00CFFF] bg-clip-text">
-              {t.features.subtitle}
+              {subtitle}
             </span>
           </h2>
           <p className="text-sm sm:text-base lg:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed font-light">
-            {t.features.description}
+            {description}
           </p>
         </div>
         
@@ -130,8 +185,8 @@ const Features = () => {
                 className="w-full h-10 border-2 hover:bg-gray-50 transition-all duration-300 font-semibold text-xs mt-auto"
                 style={{ borderColor: `${feature.color}50`, color: feature.color }}
               >
-                <Link to={feature.route}>
-                  {t.features.learnMore}
+                <Link href={feature.route}>
+                  {learnMore}
                 </Link>
               </Button>
             </div>
@@ -170,7 +225,7 @@ const Features = () => {
                       className="w-full h-10 border-2 hover:bg-gray-50 transition-all duration-300 font-semibold text-xs mt-auto"
                       style={{ borderColor: `${feature.color}50`, color: feature.color }}
                     >
-                      <Link to={feature.route}>
+                      <Link href={feature.route}>
                         {t.features.learnMore}
                       </Link>
                     </Button>

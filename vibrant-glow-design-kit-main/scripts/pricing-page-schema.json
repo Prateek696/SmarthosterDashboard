@@ -1,0 +1,26 @@
+{
+  "kind": "singleType",
+  "collectionName": "pricing_pages",
+  "info": {
+    "singularName": "pricing-page",
+    "pluralName": "pricing-pages",
+    "displayName": "Pricing Page"
+  },
+  "attributes": {
+    "hero": {
+      "type": "json"
+    },
+    "plans": {
+      "type": "json"
+    },
+    "sections": {
+      "type": "json"
+    },
+    "trust": {
+      "type": "json"
+    },
+    "footer": {
+      "type": "json"
+    }
+  }
+}

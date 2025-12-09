@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -12,6 +12,7 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const router = useRouter();
 
   // Always call all hooks first, before any conditional logic
   useEffect(() => {
@@ -70,8 +71,14 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
     );
   }
 
+  useEffect(() => {
+    if (!loading && !isAdmin) {
+      router.push('/');
+    }
+  }, [isAdmin, loading, router]);
+
   if (!isAdmin) {
-    return <Navigate to="/" replace />;
+    return null; // Will redirect via useEffect
   }
 
   return <>{children}</>;

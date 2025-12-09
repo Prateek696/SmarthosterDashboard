@@ -1,18 +1,102 @@
 import { Building2, Leaf, Users, Globe, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { useEffect, useState, useRef } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
+import { extractComponent, getStrapiText, getStrapiImageUrl, getStrapiImageAlt, formatStrapiArray } from "@/utils/strapi-helpers";
 
-const AboutUs = () => {
+interface AboutUsProps {
+  strapiData?: any; // Optional Strapi homepage data
+}
+
+const AboutUs = ({ strapiData }: AboutUsProps = {}) => {
   const { t } = useLanguage();
   const [activeIndex, setActiveIndex] = useState(0);
   
-  // Partner logo data with updated sizing
-  const partners = [
+  // Extract About section from Strapi data
+  let aboutSection = null;
+  if (strapiData) {
+    if (strapiData.aboutSection) {
+      aboutSection = strapiData.aboutSection;
+    }
+    if (!aboutSection) {
+      aboutSection = extractComponent(strapiData, 'aboutSection');
+    }
+    if (!aboutSection && strapiData.attributes?.aboutSection) {
+      aboutSection = strapiData.attributes.aboutSection;
+    }
+  }
+  
+  // Helper function to get value with fallback: Strapi → Translations → Default
+  const getValue = (strapiPath: string, translationPath: string, defaultValue: string): string => {
+    if (aboutSection) {
+      const value = getStrapiText(aboutSection[strapiPath]);
+      if (value) return value;
+    }
+    const translationValue = translationPath.split('.').reduce((obj: any, key: string) => obj?.[key], t);
+    return translationValue || defaultValue;
+  };
+  
+  // Get title and description
+  const title = getValue('title', 'aboutUs.title', 'About SmartHoster.io');
+  const description = getValue('description', 'aboutUs.description', 'We combine cutting-edge technology with local Portuguese expertise');
+  const partnersTitle = getValue('partnersTitle', 'aboutUs.partners.title', 'Trusted Partner Network');
+  const trustBadgeText = getValue('trustBadgeText', 'hero.trustBadge', 'Trusted by property owners across Portugal');
+  const learnMoreButtonText = getValue('learnMoreButtonText', 'aboutUs.learnMore', 'Learn More About Our Services');
+  const learnMoreButtonLink = aboutSection?.learnMoreButtonLink || '/learn-more';
+  
+  // Get values from Strapi or fallback
+  const strapiValues = formatStrapiArray(aboutSection?.values || []);
+  const iconMap: Record<string, any> = {
+    'Building2': Building2,
+    'Users': Users,
+    'Leaf': Leaf,
+    'Globe': Globe
+  };
+  
+  const values = strapiValues.length > 0 ? strapiValues.map((val: any) => ({
+    icon: iconMap[val.iconName] || Building2,
+    title: getStrapiText(val.title) || '',
+    description: getStrapiText(val.description) || '',
+    link: val.link || '/learn-more'
+  })) : [
+    {
+      icon: Building2,
+      title: t.aboutUs.values.technology.title,
+      description: t.aboutUs.values.technology.description,
+      link: "/advanced-automation"
+    },
+    {
+      icon: Users,
+      title: t.aboutUs.values.expertise.title,
+      description: t.aboutUs.values.expertise.description,
+      link: "/full-service-management"
+    },
+    {
+      icon: Leaf,
+      title: t.aboutUs.values.sustainability.title,
+      description: t.aboutUs.values.sustainability.description,
+      link: "/green-pledge"
+    },
+    {
+      icon: Globe,
+      title: t.aboutUs.values.standards.title,
+      description: t.aboutUs.values.standards.description,
+      link: "/legal-compliance"
+    }
+  ];
+  
+  // Get partners from Strapi or fallback
+  const strapiPartners = formatStrapiArray(aboutSection?.partners || []);
+  const partners = strapiPartners.length > 0 ? strapiPartners.map((p: any) => ({
+    name: getStrapiText(p.name) || '',
+    logo: getStrapiImageUrl(p.logo) || '',
+    alt: getStrapiImageAlt(p.logo) || getStrapiText(p.altText) || '',
+    size: p.size || 'h-14 w-auto'
+  })) : [
     { 
       name: "Airbnb", 
       logo: "https://upload.wikimedia.org/wikipedia/commons/6/69/Airbnb_Logo_B%C3%A9lo.svg",
@@ -87,34 +171,6 @@ const AboutUs = () => {
     }
   ];
 
-  // Values Grid - Premium Features for Maximum Success
-  const values = [
-    {
-      icon: Building2,
-      title: t.aboutUs.values.technology.title,
-      description: t.aboutUs.values.technology.description,
-      link: "/advanced-automation"
-    },
-    {
-      icon: Users,
-      title: t.aboutUs.values.expertise.title,
-      description: t.aboutUs.values.expertise.description,
-      link: "/full-service-management"
-    },
-    {
-      icon: Leaf,
-      title: t.aboutUs.values.sustainability.title,
-      description: t.aboutUs.values.sustainability.description,
-      link: "/green-pledge"
-    },
-    {
-      icon: Globe,
-      title: t.aboutUs.values.standards.title,
-      description: t.aboutUs.values.standards.description,
-      link: "/legal-compliance"
-    }
-  ];
-
   return (
     <section className="py-12 sm:py-16 lg:py-20 bg-white relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-gray-50/50 to-blue-50/30"></div>
@@ -122,10 +178,10 @@ const AboutUs = () => {
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <div className="text-center mb-8 sm:mb-12 lg:mb-16 animate-fade-in">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4 lg:mb-6 tracking-tight">
-            {t.aboutUs.title}
+            {title}
           </h2>
           <p className="text-base sm:text-lg text-gray-600 max-w-4xl mx-auto leading-relaxed font-light px-4 sm:px-0">
-            {t.aboutUs.description}
+            {description}
           </p>
         </div>
         
@@ -152,8 +208,8 @@ const AboutUs = () => {
                 size="sm"
                 className="border-[#5FFF56] text-[#5FFF56] hover:bg-[#5FFF56] hover:text-black text-sm px-4 py-2 rounded-lg transition-all duration-300 w-full"
               >
-                <Link to={value.link}>
-                  Learn More
+                <Link href={value.link}>
+                  {learnMoreButtonText.split(' ')[0]} {learnMoreButtonText.split(' ')[1] || ''}
                 </Link>
               </Button>
             </div>
@@ -163,7 +219,7 @@ const AboutUs = () => {
         {/* Trusted Partner Network */}
         <div className="text-center animate-fade-in">
           <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 lg:mb-12">
-            {t.aboutUs.partners.title}
+            {partnersTitle}
           </h3>
           
           <div className="relative max-w-6xl mx-auto">
@@ -209,7 +265,7 @@ const AboutUs = () => {
           {/* Trust Badge */}
           <div className="mt-8 sm:mt-12 inline-flex items-center px-4 sm:px-6 py-3 bg-white/80 backdrop-blur-sm rounded-full border border-[#5FFF56]/30 shadow-lg">
             <Users className="w-4 h-4 sm:w-5 sm:h-5 text-[#5FFF56] mr-3" />
-            <span className="text-sm sm:text-base font-semibold text-gray-800">{t.hero.trustBadge}</span>
+            <span className="text-sm sm:text-base font-semibold text-gray-800">{trustBadgeText}</span>
           </div>
         </div>
         
@@ -220,8 +276,8 @@ const AboutUs = () => {
             size="lg"
             className="bg-gradient-to-r from-[#5FFF56] to-[#00CFFF] hover:from-[#4EE045] hover:to-[#00B8E6] text-black font-semibold px-8 py-6 rounded-xl text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
           >
-            <Link to="/learn-more">
-              Learn More About Our Services
+            <Link href={learnMoreButtonLink}>
+              {learnMoreButtonText}
             </Link>
           </Button>
         </div>

@@ -1,15 +1,24 @@
+'use client';
 
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Link } from "react-router-dom";
+import { usePathname } from "next/navigation";
+import { getLocaleFromPathname, addLocalePrefix } from "@/utils/locale-helpers";
+// Using anchor tags instead of React Router Link for Next.js compatibility
 
 const Footer = () => {
   const { t } = useLanguage();
+  const pathname = usePathname();
+  
+  // Get current locale from pathname
+  const currentLocale = getLocaleFromPathname(pathname || '/');
 
   const currentYear = new Date().getFullYear();
 
   const scrollToSection = (sectionId: string) => {
-    if (window.location.pathname !== "/") {
-      window.location.href = `/#${sectionId}`;
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    const currentPath = window.location.pathname;
+    if (currentPath !== addLocalePrefix("/", currentLocale) && currentPath !== "/") {
+      window.location.href = `${addLocalePrefix("/", currentLocale)}#${sectionId}`;
     } else {
       const element = document.getElementById(sectionId);
       if (element) {
@@ -122,28 +131,28 @@ const Footer = () => {
                 </h3>
                 <ul className="space-y-2">
                   <li>
-                    <Link 
-                      to="/pricing"
+                    <a 
+                      href={addLocalePrefix("/pricing", currentLocale)}
                       className="text-gray-400 hover:text-white transition-colors duration-200"
                     >
                       {t.footer.sections.platform.links[1]}
-                    </Link>
+                    </a>
                   </li>
                   <li>
-                    <Link 
-                      to="/integrations" 
+                    <a 
+                      href={addLocalePrefix("/integrations", currentLocale)} 
                       className="text-gray-400 hover:text-white transition-colors duration-200"
                     >
                       {t.footer.sections.platform.links[2]}
-                    </Link>
+                    </a>
                   </li>
                   <li>
-                    <Link 
-                      to="/portal" 
+                    <a 
+                      href="/portal" 
                       className="text-gray-400 hover:text-white transition-colors duration-200"
                     >
                       Client Portal
-                    </Link>
+                    </a>
                   </li>
                 </ul>
               </div>
@@ -155,36 +164,36 @@ const Footer = () => {
                 </h3>
                 <ul className="space-y-2">
                   <li>
-                    <Link 
-                      to="/about" 
+                    <a 
+                      href={addLocalePrefix("/about", currentLocale)} 
                       className="text-gray-400 hover:text-white transition-colors duration-200"
                     >
                       {t.footer.sections.company.links[0]}
-                    </Link>
+                    </a>
                   </li>
                   <li>
-                    <Link 
-                      to="/blog" 
+                    <a 
+                      href={addLocalePrefix("/blog", currentLocale)} 
                       className="text-gray-400 hover:text-white transition-colors duration-200"
                     >
                       {t.footer.sections.company.links[3]}
-                    </Link>
+                    </a>
                   </li>
                   <li>
-                    <Link
-                      to="/contact"
+                    <a
+                      href={addLocalePrefix("/contact", currentLocale)}
                       className="text-gray-400 hover:text-white transition-colors duration-200 text-left block"
                     >
                       {t.footer.sections.company.links[4]}
-                    </Link>
+                    </a>
                   </li>
                   <li>
-                    <Link 
-                      to="/jobs" 
+                    <a 
+                      href={addLocalePrefix("/jobs", currentLocale)} 
                       className="text-gray-400 hover:text-white transition-colors duration-200"
                     >
                       {t.footer.sections.company.links[1]}
-                    </Link>
+                    </a>
                   </li>
                 </ul>
               </div>
@@ -196,36 +205,36 @@ const Footer = () => {
                 </h3>
                 <ul className="space-y-2">
                   <li>
-                    <Link 
-                      to="/privacy" 
+                    <a 
+                      href={addLocalePrefix("/privacy", currentLocale)} 
                       className="text-gray-400 hover:text-white transition-colors duration-200"
                     >
                       {t.footer.legal.privacy}
-                    </Link>
+                    </a>
                   </li>
                   <li>
-                    <Link 
-                      to="/terms" 
+                    <a 
+                      href={addLocalePrefix("/terms", currentLocale)} 
                       className="text-gray-400 hover:text-white transition-colors duration-200"
                     >
                       {t.footer.legal.terms}
-                    </Link>
+                    </a>
                   </li>
                   <li>
-                    <Link 
-                      to="/cookie-policy" 
+                    <a 
+                      href={addLocalePrefix("/cookie-policy", currentLocale)} 
                       className="text-gray-400 hover:text-white transition-colors duration-200"
                     >
                       {t.footer.legal.cookies}
-                    </Link>
+                    </a>
                   </li>
                   <li>
-                    <Link 
-                      to="/gdpr-compliance" 
+                    <a 
+                      href={addLocalePrefix("/gdpr-compliance", currentLocale)} 
                       className="text-gray-400 hover:text-white transition-colors duration-200"
                     >
                       {t.footer.legal.gdpr}
-                    </Link>
+                    </a>
                   </li>
                   <li>
                     <a 
@@ -260,3 +269,6 @@ const Footer = () => {
 };
 
 export default Footer;
+
+
+

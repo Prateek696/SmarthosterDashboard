@@ -1,9 +1,14 @@
+'use client';
 
 import { Globe } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { usePathname, useRouter } from "next/navigation";
+import { removeLocalePrefix, addLocalePrefix } from "@/utils/locale-helpers";
 
 const LanguageBand = () => {
   const { currentLanguage, setLanguage, t } = useLanguage();
+  const pathname = usePathname();
+  const router = useRouter();
   
   const languages = [
     { code: "en" as const, name: "English", flag: "🇺🇸" },
@@ -13,9 +18,22 @@ const LanguageBand = () => {
 
   const handleLanguageClick = (langCode: typeof languages[0]['code']) => {
     console.log('🌐 Language clicked:', langCode);
-    console.log('🌐 Current language before:', currentLanguage);
+    console.log('🌐 Current pathname:', pathname);
+    
+    // Update language in context
     setLanguage(langCode);
-    console.log('🌐 Language set to:', langCode);
+    
+    // Get current path without locale
+    const currentPath = pathname || '/';
+    const pathWithoutLocale = removeLocalePrefix(currentPath);
+    
+    // Build new URL with new locale
+    const newPath = addLocalePrefix(pathWithoutLocale, langCode);
+    
+    console.log('🌐 Redirecting to:', newPath);
+    
+    // Use Next.js router for client-side navigation
+    router.push(newPath);
   };
 
   return (
@@ -31,7 +49,7 @@ const LanguageBand = () => {
             {languages.map((lang) => (
               <button
                 key={lang.code}
-                onClick={() => setLanguage(lang.code)}
+                onClick={() => handleLanguageClick(lang.code)}
                 className={`flex items-center space-x-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md transition-colors duration-200 text-xs sm:text-sm ${
                   currentLanguage === lang.code
                     ? 'bg-white text-gray-900 shadow-sm border border-gray-200'

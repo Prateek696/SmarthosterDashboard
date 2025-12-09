@@ -3,12 +3,13 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { LogOut, Home, FileText, Calendar, FolderOpen, MessageCircle } from 'lucide-react';
-import { Link, useLocation, Outlet } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { toast } from 'sonner';
 
-const PortalLayout = () => {
+const PortalLayout = ({ children }: { children?: React.ReactNode }) => {
   const { signOut } = useAuth();
-  const location = useLocation();
+  const pathname = usePathname();
 
   const handleSignOut = async () => {
     try {
@@ -76,11 +77,11 @@ const PortalLayout = () => {
           <div className="p-4 space-y-2">
             {navigation.map((item) => {
               const Icon = item.icon;
-              const isActive = location.pathname === item.href;
+              const isActive = pathname === item.href;
               return (
                 <Link
                   key={item.name}
-                  to={item.href}
+                  href={item.href}
                   className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                     isActive
                       ? 'bg-[#5FFF56] bg-opacity-20 text-gray-900 font-medium'
@@ -97,7 +98,7 @@ const PortalLayout = () => {
 
         {/* Main Content */}
         <main className="flex-1 p-8">
-          <Outlet />
+          {children}
         </main>
       </div>
     </div>

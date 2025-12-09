@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Meta Tags Test Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        h2 { color: #666; border-bottom: 2px solid #5FFF56; padding-bottom: 10px; }
+        .meta-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f9f9f9;
+            border-left: 4px solid #5FFF56;
+        }
+        .meta-label {
+            font-weight: bold;
+            color: #333;
+        }
+        .meta-value {
+            color: #666;
+            margin-top: 5px;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        button {
+            background: #5FFF56;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #4fe04f;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Meta Tags Test Tool</h1>
+    
+    <div class="test-section">
+        <h2>Test Any URL</h2>
+        <input type="text" id="testUrl" placeholder="Enter blog post URL (e.g., http://localhost:3001/en/blog/airbnb-photography-guide-portugal)" value="http://localhost:3001/en/blog/airbnb-photography-guide-portugal">
+        <button onclick="testUrl()">Test URL</button>
+        <button onclick="testCurrentPage()">Test Current Page</button>
+    </div>
+
+    <div class="test-section" id="results">
+        <h2>Meta Tags Results</h2>
+        <p>Click "Test Current Page" to see meta tags from the current page, or enter a URL and click "Test URL".</p>
+    </div>
+
+    <script>
+        function getMetaTag(name, isProperty = false) {
+            const attr = isProperty ? 'property' : 'name';
+            const element = document.querySelector(`meta[${attr}="${name}"]`);
+            return element ? element.getAttribute('content') : null;
+        }
+
+        function testCurrentPage() {
+            const results = {
+                title: document.title,
+                description: getMetaTag('description'),
+                ogTitle: getMetaTag('og:title', true),
+                ogDescription: getMetaTag('og:description', true),
+                ogImage: getMetaTag('og:image', true),
+                ogUrl: getMetaTag('og:url', true),
+                ogType: getMetaTag('og:type', true),
+                twitterCard: getMetaTag('twitter:card'),
+                twitterTitle: getMetaTag('twitter:title'),
+                canonical: document.querySelector('link[rel="canonical"]')?.getAttribute('href'),
+            };
+
+            displayResults(results, 'Current Page');
+        }
+
+        async function testUrl() {
+            const url = document.getElementById('testUrl').value;
+            if (!url) {
+                alert('Please enter a URL');
+                return;
+            }
+
+            try {
+                const response = await fetch(url);
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                const results = {
+                    title: doc.title,
+                    description: doc.querySelector('meta[name="description"]')?.getAttribute('content'),
+                    ogTitle: doc.querySelector('meta[property="og:title"]')?.getAttribute('content'),
+                    ogDescription: doc.querySelector('meta[property="og:description"]')?.getAttribute('content'),
+                    ogImage: doc.querySelector('meta[property="og:image"]')?.getAttribute('content'),
+                    ogUrl: doc.querySelector('meta[property="og:url"]')?.getAttribute('content'),
+                    ogType: doc.querySelector('meta[property="og:type"]')?.getAttribute('content'),
+                    twitterCard: doc.querySelector('meta[name="twitter:card"]')?.getAttribute('content'),
+                    twitterTitle: doc.querySelector('meta[name="twitter:title"]')?.getAttribute('content'),
+                    canonical: doc.querySelector('link[rel="canonical"]')?.getAttribute('href'),
+                };
+
+                displayResults(results, url);
+            } catch (error) {
+                document.getElementById('results').innerHTML = `
+                    <h2>Meta Tags Results</h2>
+                    <p class="error">Error fetching URL: ${error.message}</p>
+                    <p>Make sure CORS is enabled or test from the same origin.</p>
+                `;
+            }
+        }
+
+        function displayResults(results, source) {
+            const resultsDiv = document.getElementById('results');
+            let html = `<h2>Meta Tags Results - ${source}</h2>`;
+
+            const checks = [
+                { label: 'Title', value: results.title, required: true },
+                { label: 'Description', value: results.description, required: true },
+                { label: 'OG Title', value: results.ogTitle, required: true },
+                { label: 'OG Description', value: results.ogDescription, required: true },
+                { label: 'OG Image', value: results.ogImage, required: false },
+                { label: 'OG URL', value: results.ogUrl, required: true },
+                { label: 'OG Type', value: results.ogType, required: false },
+                { label: 'Twitter Card', value: results.twitterCard, required: false },
+                { label: 'Twitter Title', value: results.twitterTitle, required: false },
+                { label: 'Canonical URL', value: results.canonical, required: false },
+            ];
+
+            checks.forEach(check => {
+                const status = check.value ? 'success' : 'error';
+                const icon = check.value ? '✅' : '❌';
+                html += `
+                    <div class="meta-item">
+                        <div class="meta-label">${icon} ${check.label} ${check.required ? '<span style="color: red;">*</span>' : ''}</div>
+                        <div class="meta-value ${status}">${check.value || 'NOT FOUND'}</div>
+                    </div>
+                `;
+            });
+
+            resultsDiv.innerHTML = html;
+        }
+
+        // Auto-test current page on load if on a blog post
+        if (window.location.pathname.includes('/blog/')) {
+            setTimeout(testCurrentPage, 500);
+        }
+    </script>
+</body>
+</html>
+
+
