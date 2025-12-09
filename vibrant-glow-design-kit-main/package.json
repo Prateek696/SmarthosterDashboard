@@ -33,7 +33,8 @@
     "test:meta-tags": "node scripts/test-meta-tags.js",
     "setup:pricingpage": "node scripts/setup-pricing-page-schema.js",
     "create:pricingpage": "node scripts/create-pricing-page-schema.js",
-    "check:pricingpage": "node scripts/check-pricing-page-schema.js"
+    "check:pricingpage": "node scripts/check-pricing-page-schema.js",
+    "keep-strapi-alive": "node scripts/keep-strapi-alive.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
