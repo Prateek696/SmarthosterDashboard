@@ -1,6 +1,7 @@
 // Ensure URL doesn't have trailing slash
+// Support both Vite (VITE_*) and Next.js (NEXT_PUBLIC_*) environment variables
 const getStrapiUrl = () => {
-  const url = process.env.NEXT_PUBLIC_STRAPI_URL || 'https://smarthoster-blogs.onrender.com';
+  const url = process.env.VITE_STRAPI_URL || process.env.NEXT_PUBLIC_STRAPI_URL || 'https://smarthoster-blogs.onrender.com';
   return url.endsWith('/') ? url.slice(0, -1) : url;
 };
 
