@@ -1,7 +1,7 @@
 import { Building2, Leaf, Users, Globe, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { Link } from '@/utils/next-compat';
+import Link from 'next/link';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { useEffect, useState, useRef } from "react";
 import useEmblaCarousel from "embla-carousel-react";

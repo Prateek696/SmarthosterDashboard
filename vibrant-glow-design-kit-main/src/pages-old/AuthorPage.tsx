@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, User, Calendar, Globe, Mail, MapPin } from 'lucide-react';
 import { BlogPost } from '@/types/blog';
-import { Link } from '@/utils/next-compat';
+import Link from 'next/link';
 
 const AuthorPage = ({ authorSlug: authorSlugProp }: { authorSlug?: string } = { authorSlug: undefined }) => {
   // Use prop directly - params are passed from Next.js page component

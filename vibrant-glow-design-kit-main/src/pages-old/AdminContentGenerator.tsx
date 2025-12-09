@@ -9,7 +9,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Loader2, Sparkles, Eye, Save, Send, Calendar, User, Image, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { SafeHTML } from '@/utils/sanitize';
-import { useRouter } from '@/utils/next-compat';
+import { useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
 
 interface Author {

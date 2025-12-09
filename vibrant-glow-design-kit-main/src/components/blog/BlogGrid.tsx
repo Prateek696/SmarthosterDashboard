@@ -2,8 +2,8 @@
 'use client';
 
 import React from 'react';
-import { Link } from '@/utils/next-compat';
-import { useRouter } from '@/utils/next-compat';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Calendar, Clock, User } from 'lucide-react';
 import { BlogPost } from '@/types/blog';
 import { formatDate } from '@/utils/blogUtils';

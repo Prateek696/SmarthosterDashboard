@@ -14,7 +14,7 @@ import { Search, Filter } from 'lucide-react';
 import { strapiApi } from '@/services/strapi.api';
 import { supabase } from '@/integrations/supabase/client';
 import { analytics, useScrollDepthTracking } from '@/utils/analytics';
-import { usePathname } from '@/utils/next-compat';
+import { usePathname } from 'next/navigation';
 import { getStrapiImageUrl } from '@/utils/strapi-helpers';
 
 // Helper function to transform Strapi post data to blog post format
@@ -278,7 +278,7 @@ const Blog = ({
   // Use a Map to deduplicate posts by slug (ensures only one post per slug)
   // Also track by ID to handle edge cases where same slug might have different IDs
   const postsMap = new Map<string, any>();
-  const postsById = new Map<number, any>();
+  const postsById = new Map<string | number, any>();
   
   // Helper to normalize slug
   const normalizeSlug = (slug: string) => slug?.toLowerCase().trim() || '';
@@ -294,7 +294,7 @@ const Blog = ({
     // If duplicate slug, keep the one with more recent publishedAt
     if (existingPost) {
       const existingDate = existingPost.publishedAt || existingPost.publishedDate || '';
-      const newDate = post.publishedAt || post.publishedDate || '';
+      const newDate = post.publishedAt || '';
       if (newDate > existingDate) {
         // Remove old post from ID map if it exists
         if (existingPost.id && postsById.has(existingPost.id)) {

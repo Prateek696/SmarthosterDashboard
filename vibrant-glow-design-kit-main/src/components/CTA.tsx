@@ -3,7 +3,7 @@ import CalendlyButton from "@/components/CalendlyButton";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle, Phone } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Link } from '@/utils/next-compat';
+import Link from 'next/link';
 import { extractComponent, getStrapiText, formatStrapiArray } from "@/utils/strapi-helpers";
 
 interface CTAProps {

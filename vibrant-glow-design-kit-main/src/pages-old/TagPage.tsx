@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Tag, ArrowLeft, TrendingUp, Hash } from 'lucide-react';
 import { BlogPost } from '@/types/blog';
-import { Link } from '@/utils/next-compat';
+import Link from 'next/link';
 
 const TagPage = ({ tagName: tagNameProp }: { tagName?: string } = { tagName: undefined }) => {
   // Use prop directly - params are passed from Next.js page component

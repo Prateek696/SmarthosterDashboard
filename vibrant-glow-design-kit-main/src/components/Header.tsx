@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { usePathname } from "@/utils/next-compat";
+import { usePathname } from 'next/navigation';
 import CalendlyButton from "@/components/CalendlyButton";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Settings } from "lucide-react";

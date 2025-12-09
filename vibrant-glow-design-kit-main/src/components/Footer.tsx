@@ -1,7 +1,7 @@
 'use client';
 
 import { useLanguage } from "@/contexts/LanguageContext";
-import { usePathname } from "@/utils/next-compat";
+import { usePathname } from 'next/navigation';
 import { getLocaleFromPathname, addLocalePrefix } from "@/utils/locale-helpers";
 // Using anchor tags instead of React Router Link for Next.js compatibility
 

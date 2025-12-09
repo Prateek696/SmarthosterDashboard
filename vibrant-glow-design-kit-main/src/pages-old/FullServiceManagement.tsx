@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Link } from '@/utils/next-compat';
+import Link from 'next/link';
 import { getStrapiText } from "@/utils/strapi-helpers";
 import { 
   Search, 

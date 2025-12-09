@@ -2,7 +2,7 @@
 
 import { Globe } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { usePathname, useRouter } from "@/utils/next-compat";
+import { usePathname, useRouter } from 'next/navigation';
 import { removeLocalePrefix, addLocalePrefix } from "@/utils/locale-helpers";
 
 const LanguageBand = () => {

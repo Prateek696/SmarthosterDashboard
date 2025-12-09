@@ -1,6 +1,8 @@
 
+'use client';
+
 import React, { useEffect, useState } from 'react';
-import { useRouter } from '@/utils/next-compat';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 

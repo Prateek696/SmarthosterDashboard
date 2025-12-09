@@ -3,9 +3,9 @@ import CalendlyButton from "@/components/CalendlyButton";
 import { Button } from "@/components/ui/button";
 import { Play, ArrowRight, Shield, Award, CheckCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Link } from '@/utils/next-compat';
+import Link from 'next/link';
 import { getStrapiImageUrl, getStrapiImageAlt, getStrapiText, extractComponent } from "@/utils/strapi-helpers";
-// import Image from 'next/image' // Using regular img in Vite;
+import Image from 'next/image';
 
 interface HeroProps {
   strapiData?: any; // Optional Strapi homepage data

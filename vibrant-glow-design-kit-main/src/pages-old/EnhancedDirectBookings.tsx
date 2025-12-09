@@ -2,7 +2,7 @@
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Link } from '@/utils/next-compat';
+import Link from 'next/link';
 import { getStrapiText } from "@/utils/strapi-helpers";
 import { 
   DollarSign, 

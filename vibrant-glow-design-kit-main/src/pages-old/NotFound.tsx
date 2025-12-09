@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { usePathname } from '@/utils/next-compat';
+import { usePathname } from 'next/navigation';
 
 const NotFound = () => {
   const pathname = usePathname();
