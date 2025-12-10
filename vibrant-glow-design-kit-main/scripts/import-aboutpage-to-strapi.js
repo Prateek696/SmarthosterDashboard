@@ -12,6 +12,7 @@
  *   3. Node.js 18+ is installed (for fetch support)
  */
 
+import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -30,6 +31,18 @@ if (typeof globalThis.fetch === 'undefined') {
 // Configuration - reads from environment variables
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 const API_TOKEN = process.env.STRAPI_API_TOKEN || ''; // Optional - set this in .env for authentication
+
+// Map app locale codes to Strapi locale codes
+// Strapi admin uses fr-FR but API accepts both - we'll use fr-FR to match admin
+function getStrapiLocale(locale) {
+  const localeMap = {
+    'en': 'en',
+    'pt': 'pt',
+    'fr': 'fr-FR'  // Strapi admin expects fr-FR
+  };
+  return localeMap[locale] || locale;
+}
+
 
 // Read translation files - About page has its own translation file
 const translationsPath = path.join(__dirname, '../src/data/translations');
@@ -211,19 +224,16 @@ function transformAboutPageData(locale = 'en') {
 
 // Main import function for a specific locale
 async function importAboutPageForLocale(locale = 'en') {
-  console.log(`🚀 Starting About Page import to Strapi for locale: ${locale}...\n`);
+    // Map locale to Strapi locale (fr -> fr-FR)
+    const strapiLocale = getStrapiLocale(locale);
+  console.log(`🚀 Starting About Page import to Strapi for locale: ${strapiLocale}...\n`);
 
   try {
-    // Check if Strapi is accessible
-    console.log('📡 Checking Strapi connection...');
-    await strapiRequest('/about-page');
-    console.log('✅ Strapi is accessible\n');
-
     // GET existing data first (to preserve structure) - with locale
-    console.log(`📥 Fetching existing About Page data for locale: ${locale}...`);
+    console.log(`📥 Fetching existing About Page data for locale: ${strapiLocale}...`);
     let existingData = null;
     try {
-      existingData = await strapiRequest(`/about-page?populate=*&locale=${locale}`);
+      existingData = await strapiRequest(`/about-page?populate=*&locale=${strapiLocale}`);
       console.log('✅ Existing data fetched\n');
     } catch (error) {
       // 404 means entry doesn't exist for this locale - that's okay, we'll create it
@@ -236,7 +246,7 @@ async function importAboutPageForLocale(locale = 'en') {
     }
 
     // Transform new data for this locale
-    console.log(`📦 Transforming data from JSON files for locale: ${locale}...`);
+    console.log(`📦 Transforming data from JSON files for locale: ${strapiLocale}...`);
     const newData = transformAboutPageData(locale);
     console.log('✅ Data transformed\n');
 
@@ -266,8 +276,8 @@ async function importAboutPageForLocale(locale = 'en') {
     console.log('   - sustainability.features length:', mergedData.data.sustainability?.features?.length || 0);
     
     // Update about page using PUT with locale parameter
-    console.log(`💾 Importing About Page data to Strapi for locale: ${locale}...`);
-    const result = await strapiRequest(`/about-page?locale=${locale}`, 'PUT', mergedData);
+    console.log(`💾 Importing About Page data to Strapi for locale: ${strapiLocale}...`);
+    const result = await strapiRequest(`/about-page?locale=${strapiLocale}`, 'PUT', mergedData);
     
     console.log('📥 Strapi Response:');
     console.log('   - Status: Success');
@@ -295,10 +305,10 @@ async function importAboutPageForLocale(locale = 'en') {
       }
     }
     
-    console.log(`\n✅ About Page imported successfully for locale: ${locale}!`);
+    console.log(`\n✅ About Page imported successfully for locale: ${strapiLocale}!`);
     console.log('\n📝 Next steps:');
     console.log('   1. Go to Strapi admin: http://localhost:1337/admin');
-    console.log(`   2. Navigate to Content Manager → Single Types → About Page (locale: ${locale})`);
+    console.log(`   2. Navigate to Content Manager → Single Types → About Page (locale: ${strapiLocale})`);
     console.log('   3. Check if arrays (coreValues.values, team.members, sustainability.features) are populated');
     console.log('   4. If arrays are empty, add at least one item manually in Strapi UI');
     console.log('   5. Click Publish (top right)');

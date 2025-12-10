@@ -58,6 +58,7 @@ export const strapiApi = {
         `pagination[pageSize]=${params?.pageSize || 50}`,
         `sort=${params?.sort || 'publishedAt:desc'}`,
         'populate[seo][populate]=*', // Explicitly populate SEO component and its nested components (openGraph)
+        'populate[coverImage][populate]=*', // Populate cover image for blog cards
         'publicationState=live', // Only fetch published posts
       ];
       
@@ -117,11 +118,11 @@ export const strapiApi = {
     try {
       // Build query string manually to handle nested brackets correctly
       // NOTE: Using populate=* together with populate[seo][populate]=* causes 500 errors in Strapi
-      // Also, populate[coverImage] causes issues when combined with populate[seo]
-      // Use only SEO populate for now - coverImage can be fetched separately if needed
+      // Use explicit populates for SEO and coverImage separately
       const queryParams = [
         `filters[slug][$eq]=${encodeURIComponent(slug)}`,
         'populate[seo][populate]=*', // Explicitly populate SEO component and its nested components (openGraph)
+        'populate[coverImage][populate]=*', // Populate cover image for blog post detail page
         'publicationState=live', // Only fetch published posts
       ];
       
@@ -133,7 +134,11 @@ export const strapiApi = {
       // Add cache-busting parameter to ensure fresh data
       queryParams.push(`_t=${Date.now()}`);
       
-      const url = `${STRAPI_URL}/api/blogs?${queryParams.join('&')}`;
+      // Build URL - if using proxy, don't add /api prefix
+      const apiPath = STRAPI_URL.startsWith('/api/strapi') ? 'blogs' : 'api/blogs';
+      const url = STRAPI_URL.startsWith('/api/strapi') 
+        ? `${STRAPI_URL}/${apiPath}?${queryParams.join('&')}`
+        : `${STRAPI_URL}/${apiPath}?${queryParams.join('&')}`;
       
       if (process.env.NODE_ENV === 'development') {
         console.log(`🔍 [getBlogBySlug] Fetching from URL: ${url}`);
