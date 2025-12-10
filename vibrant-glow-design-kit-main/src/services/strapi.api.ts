@@ -1,6 +1,13 @@
 // Ensure URL doesn't have trailing slash
 // Support both Vite (VITE_*) and Next.js (NEXT_PUBLIC_*) environment variables
+// Use Next.js API proxy for client-side requests to avoid CORS issues
 const getStrapiUrl = () => {
+  // On client-side, use Next.js API proxy to avoid CORS
+  if (typeof window !== 'undefined') {
+    return '/api/strapi'; // Use Next.js API route as proxy
+  }
+  
+  // On server-side, use direct Strapi URL
   const url = process.env.VITE_STRAPI_URL || process.env.NEXT_PUBLIC_STRAPI_URL || 'https://smarthoster-blogs.onrender.com';
   return url.endsWith('/') ? url.slice(0, -1) : url;
 };
@@ -62,7 +69,13 @@ export const strapiApi = {
       // Add cache-busting parameter to ensure fresh data
       queryParams.push(`_t=${Date.now()}`);
       
-      const response = await fetchWithTimeout(`${STRAPI_URL}/api/blogs?${queryParams.join('&')}`, {
+      // Build URL - if using proxy, don't add /api prefix
+      const apiPath = STRAPI_URL.startsWith('/api/strapi') ? 'blogs' : 'api/blogs';
+      const fullUrl = STRAPI_URL.startsWith('/api/strapi') 
+        ? `${STRAPI_URL}/${apiPath}?${queryParams.join('&')}`
+        : `${STRAPI_URL}/${apiPath}?${queryParams.join('&')}`;
+      
+      const response = await fetchWithTimeout(fullUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
